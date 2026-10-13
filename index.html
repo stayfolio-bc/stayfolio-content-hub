@@ -77,6 +77,56 @@ a{color:var(--pine)}
 .block-head .right{margin-left:auto;display:flex;gap:6px;align-items:center}
 .empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:13px}
 
+/* 대시보드: 상단 실시간 줄 */
+.live{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--pine);border-radius:var(--r);padding:14px 20px;margin-bottom:14px}
+.live .big{display:flex;align-items:baseline;gap:8px}
+.live .big span{font-size:12.5px;color:var(--muted)}
+.live .big b{font-size:26px;font-weight:800;letter-spacing:-0.03em;color:var(--pine)}
+.live .big em{font-style:normal;font-size:13px;color:var(--muted)}
+.live .parts{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+.live .parts b{font-weight:700;color:var(--ink)}
+.live .parts b.bad{color:var(--bad)}
+.live .stamp{margin-left:auto;font-size:12px;color:var(--pine);font-weight:600;display:flex;align-items:center;gap:6px}
+.live .stamp i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+/* KPI 카드 */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.kpi span{font-size:12px;color:var(--muted)}
+.kpi b{display:block;font-size:26px;font-weight:800;letter-spacing:-0.03em;margin:4px 0 2px}
+.kpi b small{font-size:14px;font-weight:600;margin-left:2px}
+.kpi .cmp{font-size:12px;color:var(--muted)}
+.kpi .cmp .up{color:var(--ok);font-weight:600}.kpi .cmp .down{color:var(--bad);font-weight:600}.kpi .cmp .flat{color:var(--muted);font-weight:600}
+/* 인사이트 */
+.insight{padding:14px 18px 16px}
+.insight .hl{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px}
+.insight .hl small{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.insight .hl p{font-size:13.5px;font-weight:600;line-height:1.55}
+.ins-row{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.6}
+.ins-row:first-of-type{border-top:none}
+.ins-tag{font-size:11px;font-weight:700;border-radius:4px;padding:1px 0;text-align:center;align-self:start;margin-top:2px}
+.ins-tag.bad{background:var(--bad-soft);color:var(--bad)}.ins-tag.warn{background:var(--warn-soft);color:var(--warn)}
+.ins-tag.info{background:var(--info-soft);color:var(--info)}.ins-tag.pine{background:var(--pine-soft);color:var(--pine)}.ins-tag.plum{background:var(--plum-soft);color:var(--plum)}
+.ins-row .muted{color:var(--muted);font-size:12px}
+/* 2단 */
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.cols .block{margin-bottom:18px}
+/* 막대 목록 */
+.bars{padding:12px 18px 16px}
+.bar-row{display:grid;grid-template-columns:var(--lw,84px) 1fr 44px 40px;gap:10px;align-items:center;font-size:12.5px;padding:3px 0}
+.bar-row .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .lb.sun{color:var(--bad)}.bar-row .lb.today{font-weight:700}
+.bar-row .tr{height:14px;background:var(--sunk);border-radius:3px;overflow:hidden;display:flex}
+.bar-row .tr i{display:block;height:100%}
+.bar-row .n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.bar-row .pct{text-align:right;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.bar-row.win .lb::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--pine);margin-left:5px;vertical-align:middle}
+.bars-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted);padding:0 18px 12px}
+.bars-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.bar-row.clickable{cursor:pointer;border-radius:4px}
+.bar-row.clickable:hover{background:var(--paper)}
+/* 사이드바 아이콘 */
+.nav button svg{width:17px;height:17px;flex-shrink:0}
+.nav-label{font-size:11px;color:var(--faint);padding:10px 10px 4px}
 /* 오늘 할 일 */
 .today{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
 .lane{border-right:1px solid var(--line);padding:14px 16px 16px;min-height:150px}
@@ -158,10 +208,57 @@ tbody tr:last-child td{border-bottom:none}
 .cell.today .n b{background:var(--ink);color:#fff;border-radius:10px;padding:0 6px}
 .cell .hol{font-size:10.5px;color:var(--bad)}
 .cell.hday .n b{color:var(--bad)}
-.ev{font-size:11.5px;line-height:1.35;padding:3px 6px;border-radius:4px;cursor:pointer;border-left:3px solid var(--line-strong);background:var(--paper);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev{font-size:11.5px;line-height:1.35;padding:5px 7px 6px;border-radius:5px;cursor:pointer;border-left:3px solid var(--line-strong);background:var(--paper);display:flex;flex-direction:column;gap:3px;min-width:0}
+.ev .ev-proj{font-weight:600;color:var(--ink);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere}
+.ev .ev-meta{display:flex;align-items:center;gap:5px;min-width:0;color:var(--muted);font-size:11px}
+.ev .ev-meta .pl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ev .who{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;font-weight:600;color:var(--ink)}
+.ev .av{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;flex-shrink:0}
+.ev .av.none{background:var(--faint)}
+.ev .tm{flex-shrink:0;font-variant-numeric:tabular-nums}
+.ev .done-tag{margin-left:auto;font-size:10px;font-weight:700;color:var(--ok);white-space:nowrap;flex-shrink:0}
+.ev .ev-who{display:flex;min-width:0}
+.cal-legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:12px 18px;border-bottom:1px solid var(--line);background:#FAFAF7}
+.lg-group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.lg-title{font-size:11.5px;font-weight:700;color:var(--muted);margin-right:2px}
+.lg-chip{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 4px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:12px;color:var(--ink);cursor:pointer}
+.lg-chip:hover{border-color:var(--line-strong)}
+.lg-chip.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lg-chip.dim{opacity:.4}
+.lg-chip .bar{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.lg-chip small{color:var(--muted);font-size:11px}
+.lg-chip .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-left:3px}
+.lg-sep{width:1px;height:22px;background:var(--line)}
+/* 리스트 보기 */
+.cal-list{padding:4px 0 8px}
+.cl-day{display:grid;grid-template-columns:92px 1fr;border-bottom:1px solid var(--line)}
+.cl-day:last-child{border-bottom:none}
+.cl-date{padding:14px 0 14px 18px;font-size:13px;font-weight:700;line-height:1.3}
+.cl-date small{display:block;font-weight:400;font-size:11.5px;color:var(--muted);margin-top:2px}
+.cl-date.red{color:var(--bad)}
+.cl-day.is-today{background:var(--pine-soft)}
+.cl-day.is-today .cl-date::after{content:"오늘";display:inline-block;margin-top:4px;font-size:10.5px;font-weight:700;color:#fff;background:var(--pine);border-radius:10px;padding:0 7px}
+.cl-day.past{opacity:.55}
+.cl-items{padding:6px 18px 6px 0}
+.cl-item{display:grid;grid-template-columns:50px 148px minmax(0,1fr) 110px 66px;gap:12px;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+.cl-item:hover{background:var(--paper)}
+.cl-item .tm{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px}
+.cl-ch{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cl-ch i{width:4px;height:18px;border-radius:2px;flex-shrink:0}
+.cl-proj{min-width:0}
+.cl-proj b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-proj small{display:block;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-item .who{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;color:var(--ink)}
+.cl-item .who .av{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.cl-item .who .av.none{background:var(--faint)}
+.cl-state{font-size:11.5px;font-weight:600;text-align:right}
+.cl-state.done{color:var(--ok)}.cl-state.plan{color:var(--muted)}
+.cl-item.done b{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.cl-empty{padding:40px 18px;text-align:center;color:var(--muted);font-size:13px}
 .ev:hover{background:var(--sunk)}
 .ev.p-ig{border-left-color:#C2557F}.ev.p-th{border-left-color:#333}.ev.p-nl{border-left-color:var(--info)}.ev.p-yt{border-left-color:#C93B26}.ev.p-bl{border-left-color:var(--ok)}
-.ev.done{opacity:.55}
+.ev.done{opacity:.6}
+.ev.done .ev-proj{text-decoration:line-through;text-decoration-color:var(--faint)}
 .ev.old{opacity:.45}
 
 /* 상세 패널 */
@@ -277,6 +374,8 @@ tbody tr:last-child td{border-bottom:none}
 .toast.on{opacity:1}
 
 @media (max-width:1000px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols{grid-template-columns:1fr}
   .today{grid-template-columns:repeat(2,1fr)}
   .lane:nth-child(2){border-right:none}
   .lane:nth-child(-n+2){border-bottom:1px solid var(--line)}
@@ -284,6 +383,9 @@ tbody tr:last-child td{border-bottom:none}
 }
 @media (max-width:760px){
   #p-expand{display:none}
+  .live .stamp{margin-left:0}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi b{font-size:22px}
   .panel.full .form{grid-template-columns:1fr}
   .side{position:fixed;z-index:70;height:100%;transform:translateX(-100%);transition:transform .2s}
   .side.open{transform:none}
@@ -295,7 +397,17 @@ tbody tr:last-child td{border-bottom:none}
   .form{grid-template-columns:1fr}
   .kv{grid-template-columns:96px 1fr}
   .cell{min-height:74px}
-  .ev{font-size:10.5px;padding:2px 4px}
+  .ev{font-size:10.5px;padding:3px 4px}
+  .ev .ev-meta{display:none}
+  .cl-day{grid-template-columns:64px 1fr}
+  .cl-date{padding-left:12px}
+  .cl-items{padding-right:8px}
+  .cl-item{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"tm ch st" "tm pj who";gap:2px 8px}
+  .cl-item .tm{grid-area:tm;align-self:start;padding-top:2px}
+  .cl-item .cl-ch{grid-area:ch}.cl-item .cl-proj{grid-area:pj}.cl-item .who{grid-area:who}.cl-item .cl-state{grid-area:st}
+  .lg-sep{display:none}
+  .ev .who .nm{display:none}
+  .ev .ev-proj{font-size:10.5px}
 }
 </style>
 </head>
@@ -316,13 +428,16 @@ tbody tr:last-child td{border-bottom:none}
   <aside class="side" id="side">
     <div class="brand"><b>STAYFOLIO</b><span>콘텐츠 협업 허브</span></div>
     <nav class="nav" id="nav">
-      <button data-v="dashboard" class="on">오늘 할 일</button>
-      <button data-v="requests">요청 목록 <span class="count zero" id="cnt-new">0</span></button>
-      <button data-v="calendar">발행 캘린더</button>
-      <button data-v="archive">아카이브</button>
-      <button data-v="guide">요청 프로세스 안내</button>
+      <div class="nav-label">업무</div>
+      <button data-v="dashboard" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>홈</button>
+      <button data-v="requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>요청 목록 <span class="count zero" id="cnt-new">0</span></button>
+      <button data-v="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>발행 캘린더</button>
+      <div class="nav-label">기록·안내</div>
+      <button data-v="archive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9"/><path d="M10 13h4"/></svg>아카이브</button>
+      <button data-v="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg>요청 프로세스 안내</button>
     </nav>
     <div class="side-foot">
+      <button class="btn ghost sm" onclick="load()" style="justify-content:flex-start;padding-left:0;gap:8px"><svg style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>새로고침</button>
       <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-label">연결 전</span></div>
       <div id="me"></div><div id="role" style="font-size:11.5px"></div>
       <button class="btn ghost sm" onclick="logout()" style="justify-content:flex-start;padding-left:0">이름 바꾸기</button>
@@ -332,7 +447,7 @@ tbody tr:last-child td{border-bottom:none}
   <div class="main">
     <header class="top">
       <button class="btn ghost sm menu-btn" onclick="document.getElementById('side').classList.toggle('open')" aria-label="메뉴">☰</button>
-      <h2 id="view-title">오늘 할 일</h2>
+      <h2 id="view-title">홈</h2>
       <span class="sync" id="sync-label"></span>
       <button class="btn sm" onclick="load()">새로고침</button>
     </header>
@@ -340,11 +455,35 @@ tbody tr:last-child td{border-bottom:none}
     <div class="content">
       <!-- 오늘 할 일 -->
       <section class="view on" id="v-dashboard">
+        <div class="live" id="live"></div>
+        <div class="kpis" id="kpis"></div>
         <div class="block">
-          <div class="block-head"><h3 id="today-title">오늘</h3><span class="sub">회신은 접수 다음 영업일까지, 일정이 바뀌면 요청 스레드에 멘션</span></div>
+          <div class="block-head"><h3 id="today-title">오늘 할 일</h3><span class="sub">회신은 접수 다음 영업일까지, 일정이 바뀌면 요청 스레드에 멘션</span></div>
           <div class="today" id="today"></div>
         </div>
-        <div class="stats" id="stats"></div>
+        <div class="cols">
+          <div>
+            <div class="block">
+              <div class="block-head"><h3>이번 주 인사이트</h3><span class="sub" id="ins-sub"></span></div>
+              <div class="insight" id="insight"></div>
+            </div>
+            <div class="block">
+              <div class="block-head"><h3>채널별 요청 비중</h3><span class="sub">최근 90일 접수 기준</span></div>
+              <div class="bars" id="chan-bars" style="--lw:96px"></div>
+            </div>
+          </div>
+          <div>
+            <div class="block">
+              <div class="block-head"><h3>담당자별 진행</h3><span class="sub">진행 중 요청 · 14일 내 발행</span></div>
+              <div class="bars" id="owner-bars" style="--lw:64px"></div>
+            </div>
+            <div class="block">
+              <div class="block-head"><h3>향후 14일 발행 일정</h3><span class="sub">채널별 건수 · 점은 오픈 후 발행 기간(D~D+5)이 겹치는 날</span></div>
+              <div class="bars" id="load-bars" style="--lw:76px"></div>
+              <div class="bars-legend" id="load-legend"></div>
+            </div>
+          </div>
+        </div>
         <div class="block">
           <div class="block-head"><h3>최근 접수</h3><div class="right"><button class="btn sm" onclick="go('requests')">전체 보기</button></div></div>
           <div class="tbl-wrap"><table><thead><tr><th>접수</th><th>요청</th><th>카테고리</th><th>오픈</th><th>게재위치</th><th>담당</th><th>상태</th><th>확인 필요</th></tr></thead><tbody id="recent-body"></tbody></table></div>
@@ -359,6 +498,7 @@ tbody tr:last-child td{border-bottom:none}
             <select id="f-cat"><option value="">카테고리 전체</option></select>
             <select id="f-team"><option value="">요청팀 전체</option></select>
             <select id="f-owner"><option value="">담당 전체</option></select>
+            <select id="f-place"><option value="">게재 채널 전체</option></select>
             <select id="f-sort">
               <option value="open">오픈일 가까운 순</option>
               <option value="submitted">최근 접수 순</option>
@@ -380,11 +520,17 @@ tbody tr:last-child td{border-bottom:none}
               <button class="btn ghost sm" onclick="moveMonth(0)">이번 달</button>
             </div>
             <div class="right">
+              <div class="seg" id="cal-mode" role="tablist" aria-label="보기 방식">
+                <button data-m="grid" class="on" role="tab">캘린더</button>
+                <button data-m="list" role="tab">리스트</button>
+              </div>
               <select id="c-owner" class="btn sm"><option value="">담당 전체</option></select>
               <select id="c-place" class="btn sm"><option value="">게재위치 전체</option></select>
             </div>
           </div>
+          <div class="cal-legend" id="cal-legend"></div>
           <div class="cal" id="cal"></div>
+          <div class="cal-list hidden" id="cal-list"></div>
         </div>
       </section>
 
@@ -746,7 +892,7 @@ function emptyRow(cols, text){ return `<tr><td colspan="${cols}" class="empty" s
 // ══════════════════════════════════════
 //  화면 전환
 // ══════════════════════════════════════
-const TITLES = { dashboard:'오늘 할 일', requests:'요청 목록', calendar:'발행 캘린더', archive:'아카이브', guide:'요청 프로세스 안내' };
+const TITLES = { dashboard:'홈', requests:'요청 목록', calendar:'발행 캘린더', archive:'아카이브', guide:'요청 프로세스 안내' };
 function go(v){
   view = v;
   document.querySelectorAll('.view').forEach(el=>el.classList.toggle('on', el.id==='v-'+v));
@@ -771,20 +917,98 @@ function planItems(filterFn){
   ALL.forEach(r=>r.plan.forEach((x,i)=>{ if(x.date && (!filterFn || filterFn(r,x))) out.push({r,x,i}); }));
   return out;
 }
+// 접수일 다음 날부터 회신일까지 영업일 수 (당일 회신 = 0)
+function bizDaysBetween(from, to){
+  if(!from || !to || to <= from) return 0;
+  let n = 0, d = parseDate(from);
+  while(ymd(d) < to){ d = addDays(d,1); if(isBizDay(d)) n++; }
+  return n;
+}
+// 이번 달 1일~오늘 vs 지난달 1일~같은 날
+function monthWindows(){
+  const n = new Date();
+  const cur = [ymd(new Date(n.getFullYear(), n.getMonth(), 1)), today()];
+  const pm = new Date(n.getFullYear(), n.getMonth()-1, 1);
+  const lastDay = new Date(n.getFullYear(), n.getMonth(), 0).getDate();
+  const prev = [ymd(pm), ymd(new Date(pm.getFullYear(), pm.getMonth(), Math.min(n.getDate(), lastDay)))];
+  return { cur, prev };
+}
+const inRange = (d, [a,b]) => d && d >= a && d <= b;
+function cmpHtml(curV, prevV, { unit='', better='up', label='지난달 같은 기간', pct=true } = {}){
+  if(prevV === null || prevV === undefined || isNaN(prevV)) return `<span class="flat">비교 데이터 없음</span>`;
+  const diff = curV - prevV;
+  if(Math.abs(diff) < 0.05) return `${label} 대비 <span class="flat">변동 없음</span> (${fmtNum(prevV)}${unit})`;
+  const good = (diff > 0) === (better === 'up');
+  const txt = pct && prevV ? `${diff>0?'+':''}${Math.round(diff/prevV*100)}%` : `${diff>0?'+':''}${fmtNum(diff)}${unit}`;
+  return `${label} 대비 <span class="${good?'up':'down'}">${txt}</span> (${fmtNum(prevV)}${unit})`;
+}
+const fmtNum = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+const FAMILY = [
+  { key:'ig', label:'인스타그램', color:'#C2557F', test:p=>p.startsWith('IG') },
+  { key:'th', label:'스레드', color:'#3B3B38', test:p=>p==='스레드' },
+  { key:'nl', label:'뉴스레터', color:'#3A56A0', test:p=>p.startsWith('뉴스레터') },
+  { key:'bl', label:'블로그', color:'#2C7A4B', test:p=>p==='블로그' },
+  { key:'yt', label:'유튜브', color:'#C93B26', test:p=>p==='유튜브' },
+];
+const famOf = p => FAMILY.find(f=>f.test(p)) || { key:'etc', label:'기타', color:'#A3A199' };
+
 function renderDashboard(){
   const t = today(), tm = ymd(addDays(new Date(),1));
-  const d = new Date();
-  document.getElementById('today-title').textContent = `오늘, ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
+  const now = new Date();
   const v2 = ALL.filter(r=>!r.legacy);
 
   const needReply = v2.filter(r=>r.status==='new').sort((a,b)=>replyDue(a).localeCompare(replyDue(b)));
+  const overdue = needReply.filter(r=>t > replyDue(r));
   const soon = planItems((r,x)=>x.state==='planned' && (x.date===t || x.date===tm)).sort((a,b)=>(a.x.date+a.x.time).localeCompare(b.x.date+b.x.time));
+  const pubToday = soon.filter(it=>it.x.date===t);
   const review = v2.filter(r=>r.status==='review');
   const kickoff = v2.filter(r=>r.category.includes('메인') && r.kickoff!=='완료' && isOpen(r));
 
+  // ── 1. 실시간 줄 ──
+  const todo = needReply.length + pubToday.length + review.length + kickoff.length;
+  const hm = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('live').innerHTML = `
+    <div class="big"><span>오늘 처리할 일</span><b>${todo}</b><em>건</em></div>
+    <div class="parts">
+      <span>회신 기한 지남 <b class="${overdue.length?'bad':''}">${overdue.length}</b></span>
+      <span>오늘까지 회신 <b>${needReply.length-overdue.length}</b></span>
+      <span>오늘 발행 <b>${pubToday.length}</b></span>
+      <span>시안 검수 <b>${review.length}</b></span>
+      <span>킥오프 필요 <b>${kickoff.length}</b></span>
+    </div>
+    <div class="stamp"><i></i>${hm} 기준 · 5분마다 갱신</div>`;
+
+  // ── 2. KPI ──
+  const { cur, prev } = monthWindows();
+  const subCur = ALL.filter(r=>inRange(r.submitted, cur)).length;
+  const subPrev = ALL.filter(r=>inRange(r.submitted, prev)).length;
+  const pubIn = w => planItems((r,x)=>x.state==='published' && inRange(x.date, w)).length;
+  const pubCur = pubIn(cur), pubPrev = pubIn(prev);
+  const d30 = ymd(addDays(now,-30)), d60 = ymd(addDays(now,-60));
+  const replied = (a,b) => v2.filter(r=>r.repliedAt && r.submitted && r.submitted > a && r.submitted <= b);
+  const avg = list => list.length ? list.reduce((s,r)=>s+bizDaysBetween(r.submitted, r.repliedAt),0)/list.length : null;
+  const rCur = replied(d30, t), rPrev = replied(d60, d30);
+  const avgCur = avg(rCur), avgPrev = avg(rPrev);
+  const onTime = rCur.length ? Math.round(rCur.filter(r=>r.repliedAt <= replyDue(r)).length / rCur.length * 100) : null;
+  const leadRate = w => {
+    const l = v2.filter(r=>inRange(r.submitted, w) && submitLead(r)!==null);
+    return l.length ? Math.round(l.filter(r=>submitLead(r) >= RULE.submitLead).length / l.length * 100) : null;
+  };
+  const lrCur = leadRate(cur), lrPrev = leadRate(prev);
+  const kpis = [
+    ['이번 달 접수', `${subCur}<small>건</small>`, cmpHtml(subCur, subPrev)],
+    ['이번 달 발행', `${pubCur}<small>건</small>`, cmpHtml(pubCur, pubPrev)],
+    ['평균 회신 소요 (최근 30일)', avgCur===null ? '—' : `${fmtNum(avgCur)}<small>영업일</small>`,
+      avgCur===null ? '<span class="flat">회신 기록이 쌓이면 표시돼요</span>' : `기한 내 회신 ${onTime}% · ` + cmpHtml(avgCur, avgPrev, { unit:'일', better:'down', label:'이전 30일', pct:false })],
+    ['D-5 준수율 (이번 달 접수)', lrCur===null ? '—' : `${lrCur}<small>%</small>`,
+      lrCur===null ? '<span class="flat">이번 달 접수가 없어요</span>' : cmpHtml(lrCur, lrPrev, { unit:'%p', pct:false })],
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(([l,v,c])=>`<div class="kpi"><span>${l}</span><b>${v}</b><div class="cmp">${c}</div></div>`).join('');
+
+  // ── 3. 오늘 할 일 ──
+  document.getElementById('today-title').textContent = `오늘 할 일 · ${now.getMonth()+1}월 ${now.getDate()}일 ${DOW[now.getDay()]}요일`;
   const lane = (cls, title, list, item) => `<div class="lane ${cls}"><h4><em>${list.length}</em>${title}</h4>${
     list.length ? `<ul>${list.slice(0,6).map(item).join('')}</ul>${list.length>6?`<div class="none" style="margin-top:6px">외 ${list.length-6}건</div>`:''}` : '<div class="none">없음</div>'}</div>`;
-
   document.getElementById('today').innerHTML =
     lane('bad','회신 필요', needReply, r=>{
       const late = t > replyDue(r);
@@ -794,25 +1018,101 @@ function renderDashboard(){
     lane('plum','시안 검수 중', review, r=>`<li onclick="openPanel('${esc(r.id)}')">${esc(r.project)}<small>${esc(r.team)} / 공유 ${r.draftShareAt?short(r.draftShareAt)+' '+timeOf(r.draftShareAt):'시점 미정'}</small></li>`) +
     lane('info','킥오프 필요', kickoff, r=>`<li onclick="openPanel('${esc(r.id)}')">${esc(r.project)}<small>메인 기획전 / 오픈 ${short(r.promoStart)}</small></li>`);
 
-  // 요약 숫자
-  const weekEnd = ymd(addDays(new Date(), 6));
-  const month = t.slice(0,7);
-  const thisWeek = planItems((r,x)=>x.state==='planned' && x.date>=t && x.date<=weekEnd).length;
-  const doneMonth = planItems((r,x)=>x.state==='published' && x.date.startsWith(month)).length;
-  const late = v2.filter(r=>{ const l = submitLead(r); return r.submitted.startsWith(month) && l!==null && l < RULE.submitLead; }).length;
-  const totalMonth = v2.filter(r=>r.submitted.startsWith(month)).length;
-  const stats = [
-    ['진행 중인 요청', v2.filter(r=>['accepted','making','review'].includes(r.status)).length],
-    ['7일 안에 발행', thisWeek + '건'],
-    ['이번 달 발행', doneMonth + '건'],
-    ['이번 달 D-5 미준수 접수', totalMonth ? `${late} / ${totalMonth}` : '0'],
-  ];
-  document.getElementById('stats').innerHTML = stats.map(([l,v])=>`<div class="stat"><span>${l}</span><b>${v}</b></div>`).join('');
+  // ── 4. 향후 14일 발행 일정 ──
+  const days = Array.from({length:14}, (_,i)=>ymd(addDays(now,i)));
+  const upcoming = planItems((r,x)=>x.state!=='skip' && x.date>=days[0] && x.date<=days[13]);
+  const perDay = days.map(d=>{
+    const its = upcoming.filter(it=>it.x.date===d);
+    const fam = {}; its.forEach(({x})=>{ const f = famOf(x.p); fam[f.key] = (fam[f.key]||0) + 1; });
+    const win = v2.some(r=>isOpen(r) && r.promoStart && d >= r.promoStart && d <= windowEnd(r));
+    return { d, n:its.length, fam, win };
+  });
+  const maxDay = Math.max(4, ...perDay.map(x=>x.n));
+  document.getElementById('load-bars').innerHTML = perDay.map(({d,n,fam,win})=>{
+    const dt = parseDate(d), hol = holidayOf(dt), red = dt.getDay()===0 || dt.getDay()===6 || hol;
+    const segs = FAMILY.concat([{key:'etc',color:'#A3A199'}]).filter(f=>fam[f.key]).map(f=>`<i style="width:${fam[f.key]/maxDay*100}%;background:${f.color}" title="${f.label||'기타'} ${fam[f.key]}건"></i>`).join('');
+    return `<div class="bar-row clickable ${win?'win':''}" onclick="jumpCalendar('${d}')" title="${hol?hol+' · ':''}캘린더에서 보기">
+      <span class="lb ${red?'sun':''} ${d===t?'today':''}">${d===t?'오늘':short(d)}</span><span class="tr">${segs}</span><span class="n">${n||''}</span><span class="pct"></span></div>`;
+  }).join('');
+  document.getElementById('load-legend').innerHTML = FAMILY.map(f=>`<span><i style="background:${f.color}"></i>${f.label}</span>`).join('');
 
+  // ── 5. 담당자별 진행 ──
+  const end14 = days[13];
+  const ownerRows = MEMBERS.map(m=>{
+    const active = v2.filter(r=>isOpen(r) && r.status!=='new' && (normName(r.owner)===normName(m) || r.plan.some(x=>normName(x.owner)===normName(m) && x.state==='planned'))).length;
+    const items = planItems((r,x)=>x.state==='planned' && x.date>=t && x.date<=end14 && normName(x.owner||r.owner)===normName(m)).length;
+    return { m, active, items };
+  });
+  const unassigned = v2.filter(r=>isOpen(r) && r.status!=='new' && !r.owner).length;
+  const maxO = Math.max(3, ...ownerRows.map(o=>o.active+o.items));
+  document.getElementById('owner-bars').innerHTML = ownerRows.map(({m,active,items})=>`
+    <div class="bar-row clickable" onclick="filterOwner('${esc(m)}')" title="${esc(m)} 진행 중 ${active}건 · 14일 내 발행 ${items}건">
+      <span class="lb">${esc(m)}</span>
+      <span class="tr"><i style="width:${active/maxO*100}%;background:var(--pine)"></i><i style="width:${items/maxO*100}%;background:#9DB8A6"></i></span>
+      <span class="n">${active}</span><span class="pct">${items}건</span></div>`).join('') +
+    `<div class="bars-legend" style="padding:8px 0 0"><span><i style="background:var(--pine)"></i>진행 중 요청</span><span><i style="background:#9DB8A6"></i>14일 내 발행 일정</span>${unassigned?`<span style="color:var(--bad)">담당 미배정 ${unassigned}건</span>`:''}</div>`;
+
+  // ── 6. 채널별 요청 비중 (최근 90일) ──
+  const d90 = ymd(addDays(now,-90));
+  const chanCount = {}; let chanTotal = 0;
+  ALL.filter(r=>r.submitted && r.submitted >= d90).forEach(r=>[...new Set(r.requested)].forEach(p=>{
+    if(!PLACEMENTS.includes(p)) return; chanCount[p] = (chanCount[p]||0) + 1; chanTotal++;
+  }));
+  const chans = PLACEMENTS.map(p=>({ p, n:chanCount[p]||0 })).sort((a,b)=>b.n-a.n);
+  const maxC = Math.max(1, ...chans.map(c=>c.n));
+  document.getElementById('chan-bars').innerHTML = chanTotal ? chans.map(({p,n})=>`
+    <div class="bar-row"><span class="lb">${esc(p)}</span><span class="tr"><i style="width:${n/maxC*100}%;background:${famOf(p).color}"></i></span>
+    <span class="n">${n}</span><span class="pct">${Math.round(n/chanTotal*100)}%</span></div>`).join('')
+    : '<div class="empty">최근 90일 접수가 쌓이면 표시돼요.</div>';
+
+  // ── 7. 인사이트 ──
+  renderInsight({ t, v2, overdue, needReply, perDay, ownerRows, chans, chanTotal, upcoming });
+
+  // ── 8. 최근 접수 ──
   const recent = [...v2].sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).slice(0,8);
   document.getElementById('recent-body').innerHTML = recent.length ? recent.map(rowHtml).join('')
     : emptyRow(8, `아직 새 양식으로 접수된 요청이 없어요. ${REQUEST_CHANNEL} 워크플로로 접수되면 여기에 표시돼요.`);
 }
+
+// 자동으로 뽑는 이번 주 특이사항
+function renderInsight({ t, v2, overdue, needReply, perDay, ownerRows, chans, chanTotal, upcoming }){
+  const wk0 = ymd(addDays(new Date(),-6));
+  const weekSub = v2.filter(r=>r.submitted && r.submitted >= wk0 && r.submitted <= t);
+  const lateSub = weekSub.filter(r=>{ const l = submitLead(r); return l!==null && l < RULE.submitLead; });
+  const noBrief = v2.filter(r=>isOpen(r) && (!r.briefUrl || !isUrl(r.briefUrl) || isTemplateLink(r.briefUrl)));
+  const next7 = perDay.slice(0,7);
+  const peak = [...next7].sort((a,b)=>b.n-a.n)[0];
+  const peakItems = peak && peak.n ? upcoming.filter(it=>it.x.date===peak.d) : [];
+  const unscheduled = v2.filter(r=>isOpen(r) && r.status!=='new' && r.plan.some(x=>x.state!=='skip' && !x.date && !SEPARATE_REPLY.includes(x.p)));
+  const busy = [...ownerRows].sort((a,b)=>(b.active+b.items)-(a.active+a.items));
+  const link = r => `<a href="#" onclick="openPanel('${esc(r.id)}');return false">${esc(r.project)}</a>`;
+
+  // 한 줄 하이라이트: 가장 급한 것 하나
+  let hl;
+  if(overdue.length) hl = `회신 기한이 지난 요청 ${overdue.length}건 — ${overdue.slice(0,2).map(link).join(', ')}${overdue.length>2?' 외':''}`;
+  else if(peak && peak.n >= 3) hl = `${short(peak.d)}에 발행 ${peak.n}건이 몰려 있어요 — ${[...new Set(peakItems.map(it=>it.x.p))].join(', ')}`;
+  else if(needReply.length) hl = `오늘까지 회신할 요청 ${needReply.length}건이 있어요`;
+  else hl = '급하게 챙길 건은 없어요. 다음 7일 발행 일정을 확인해 보세요.';
+
+  const rows = [];
+  rows.push(['접수','info', weekSub.length
+    ? `최근 7일 새 요청 <b>${weekSub.length}건</b>${lateSub.length?` · 그중 D-5 이후 접수 <b style="color:var(--warn)">${lateSub.length}건</b> <span class="muted">(${lateSub.slice(0,3).map(r=>esc(r.team)).join(', ')})</span>`:' · 모두 D-5 기준 안에 접수됐어요'}`
+    : '최근 7일 새 요청이 없어요']);
+  if(noBrief.length) rows.push(['요청서','bad', `요청서 링크가 없거나 템플릿 그대로인 진행 중 요청 <b>${noBrief.length}건</b> — ${noBrief.slice(0,3).map(link).join(', ')}`]);
+  rows.push(['일정','pine', peak && peak.n
+    ? `다음 7일 발행 <b>${next7.reduce((s,x)=>s+x.n,0)}건</b> · 가장 많은 날 ${short(peak.d)} ${peak.n}건${unscheduled.length?` · 일정 미정 요청 <b style="color:var(--warn)">${unscheduled.length}건</b>`:''}`
+    : `다음 7일 잡힌 발행이 없어요${unscheduled.length?` · 일정 미정 요청 <b style="color:var(--warn)">${unscheduled.length}건</b>`:''}`]);
+  if(busy.length && (busy[0].active+busy[0].items)) rows.push(['담당','plum',
+    busy.filter(o=>o.active+o.items).map(o=>`${esc(o.m)} <b>${o.active}</b>건 진행 · ${o.items}건 발행 예정`).join(' &nbsp;·&nbsp; ')]);
+  if(chanTotal) rows.push(['채널','warn', `최근 90일 가장 많이 요청된 채널은 <b>${esc(chans[0].p)}</b> (${Math.round(chans[0].n/chanTotal*100)}%)${chans[1]&&chans[1].n?`, 다음은 ${esc(chans[1].p)} (${Math.round(chans[1].n/chanTotal*100)}%)`:''}`]);
+
+  document.getElementById('ins-sub').textContent = `${short(wk0)} ~ ${short(t)}`;
+  document.getElementById('insight').innerHTML =
+    `<div class="hl"><small>지금 가장 먼저 볼 것</small><p>${hl}</p></div>` +
+    rows.map(([tag,c,txt])=>`<div class="ins-row"><span class="ins-tag ${c}">${tag}</span><div>${txt}</div></div>`).join('');
+}
+function jumpCalendar(d){ const x = parseDate(d); calY = x.getFullYear(); calM = x.getMonth(); go('calendar'); }
+function filterOwner(m){ go('requests'); const sel = document.getElementById('f-owner'); sel.value = m; renderRequests(); }
 
 // ══════════════════════════════════════
 //  요청 목록
@@ -827,6 +1127,7 @@ function fillFilters(){
   fill('f-cat', [...new Set(v2.map(r=>r.category).filter(Boolean))].sort(), true);
   fill('f-team', [...new Set(v2.map(r=>r.team).filter(Boolean))].sort(), true);
   fill('f-owner', MEMBERS, true);
+  fill('f-place', PLACEMENTS, true);
   fill('c-owner', MEMBERS, true);
   fill('c-place', PLACEMENTS, true);
   fill('a-team', [...new Set(ALL.map(r=>r.team).filter(Boolean))].sort(), true);
@@ -837,13 +1138,15 @@ function fillFilters(){
   seg.innerHTML = tabs.map(([k,l])=>`<button data-k="${k}" class="${k===reqStatus?'on':''}">${l}</button>`).join('');
 }
 function renderRequests(){
-  const cat = val('f-cat'), team = val('f-team'), owner = val('f-owner'), sort = val('f-sort'), q = val('f-q').toLowerCase();
+  const cat = val('f-cat'), team = val('f-team'), owner = val('f-owner'), place = val('f-place'), sort = val('f-sort'), q = val('f-q').toLowerCase();
   let list = ALL.filter(r=>!r.legacy);
   if(reqStatus==='open') list = list.filter(isOpen);
   else if(reqStatus!=='all') list = list.filter(r=>r.status===reqStatus);
   if(cat) list = list.filter(r=>r.category===cat);
   if(team) list = list.filter(r=>r.team===team);
   if(owner) list = list.filter(r=>r.owner.includes(owner) || r.plan.some(x=>String(x.owner).includes(owner)));
+  // 요청한 게재위치 또는 실제 게재 일정에 해당 채널이 있으면 표시 (미진행 처리한 건 제외)
+  if(place) list = list.filter(r=>r.requested.includes(place) || r.plan.some(x=>x.p===place && x.state!=='skip'));
   if(q) list = list.filter(r=>(r.project+r.requester+r.team).toLowerCase().includes(q));
   if(sort==='open') list.sort((a,b)=>(a.promoStart||'9').localeCompare(b.promoStart||'9'));
   else list.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)));
@@ -859,14 +1162,72 @@ function moveMonth(n){
   else { calM += n; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} }
   renderCalendar();
 }
+// 담당자별 고정 색 (설정 탭 순서 기준)
+const OWNER_COLORS = ['#2E4A3C','#3A56A0','#A3590F','#6B3F8E','#B3392C','#2C7A86','#7A6A1F','#8E3A5D'];
+function ownerColor(name){
+  const i = MEMBERS.findIndex(m => normName(m) === normName(name));
+  if(i >= 0) return OWNER_COLORS[i % OWNER_COLORS.length];
+  let h = 0; for(const c of String(name)) h = (h*31 + c.charCodeAt(0)) >>> 0;
+  return OWNER_COLORS[h % OWNER_COLORS.length];
+}
+function ownerChip(name){
+  if(!name) return `<span class="who" style="color:var(--muted);font-weight:400"><span class="av none">?</span><span class="nm">담당 미정</span></span>`;
+  const first = String(name).split(/[,+]/)[0].trim();
+  const extra = String(name).split(/[,+]/).filter(s=>s.trim()).length - 1;
+  const ini = first.length >= 3 ? first.slice(1,2) : first.slice(0,1);   // 김민지 → 민
+  return `<span class="who"><span class="av" style="background:${ownerColor(first)}">${esc(ini)}</span><span class="nm">${esc(first)}${extra>0?` 외 ${extra}`:''}</span></span>`;
+}
+// 캘린더 색 막대 = 채널 그룹 (pClass와 같은 기준)
+const CH_GROUPS = [
+  { cls:'p-ig', color:'#C2557F', label:'인스타그램', sub:'피드·스토리·릴스', places:['IG 피드','IG 스토리','IG 릴스'] },
+  { cls:'p-th', color:'#333333', label:'스레드', sub:'', places:['스레드'] },
+  { cls:'p-nl', color:'#3A56A0', label:'뉴스레터', sub:'단독·소식지', places:['뉴스레터 단독','뉴스레터 소식지'] },
+  { cls:'p-bl', color:'#2C7A4B', label:'블로그', sub:'', places:['블로그'] },
+  { cls:'p-yt', color:'#C93B26', label:'유튜브', sub:'', places:['유튜브'] },
+];
+let calMode = (()=>{ try{ return localStorage.getItem('hub_cal_mode') || 'grid'; }catch(e){ return 'grid'; } })();
+let calGroup = '';   // 범례에서 고른 채널 그룹
+
+function calItems(){
+  const owner = val('c-owner'), place = val('c-place');
+  const grp = CH_GROUPS.find(g=>g.cls===calGroup);
+  return planItems((r,x)=>x.state!=='skip'
+    && (!owner || String(x.owner).includes(owner) || (!x.owner && r.owner.includes(owner)))
+    && (!place || x.p===place)
+    && (!grp || grp.places.includes(x.p)));
+}
+function renderLegend(){
+  const counts = {};
+  const mm = `${calY}-${pad(calM+1)}`;
+  planItems((r,x)=>x.state!=='skip' && String(x.date).startsWith(mm)).forEach(({x})=>{ const c = pClass(x.p); counts[c] = (counts[c]||0) + 1; });
+  document.getElementById('cal-legend').innerHTML =
+    `<div class="lg-group"><span class="lg-title">채널</span>${CH_GROUPS.map(g=>`
+      <button class="lg-chip ${calGroup===g.cls?'on':''} ${calGroup && calGroup!==g.cls?'dim':''}" onclick="toggleCalGroup('${g.cls}')" title="${g.label}만 보기 / 다시 누르면 전체">
+        <span class="bar" style="background:${g.color}"></span>${g.label}${g.sub?` <small>${g.sub}</small>`:''}<small>${counts[g.cls]||0}건</small></button>`).join('')}</div>` +
+    (MEMBERS.length ? `<span class="lg-sep"></span><div class="lg-group"><span class="lg-title">담당</span>${MEMBERS.map(m=>`
+      <button class="lg-chip ${val('c-owner')===m?'on':''}" onclick="toggleCalOwner('${esc(m)}')" title="${esc(m)} 일정만 보기"><span class="dot" style="background:${ownerColor(m)}"></span>${esc(m)}</button>`).join('')}</div>` : '');
+}
+function toggleCalGroup(cls){ calGroup = calGroup===cls ? '' : cls; renderCalendar(); }
+function toggleCalOwner(m){ const sel = document.getElementById('c-owner'); sel.value = sel.value===m ? '' : m; renderCalendar(); }
+function setCalMode(m){
+  calMode = m; try{ localStorage.setItem('hub_cal_mode', m); }catch(e){}
+  renderCalendar();
+}
+
 function renderCalendar(){
   document.getElementById('cal-title').textContent = `${calY}년 ${calM+1}월`;
-  const owner = val('c-owner'), place = val('c-place');
-  const items = planItems((r,x)=>x.state!=='skip' && (!owner || String(x.owner).includes(owner) || (!x.owner && r.owner.includes(owner))) && (!place || x.p===place));
+  document.querySelectorAll('#cal-mode button').forEach(b=>b.classList.toggle('on', b.dataset.m===calMode));
+  document.getElementById('cal').classList.toggle('hidden', calMode!=='grid');
+  document.getElementById('cal-list').classList.toggle('hidden', calMode!=='list');
+  renderLegend();
+  const items = calItems();
   const byDay = {};
   items.forEach(it=>{ (byDay[it.x.date] = byDay[it.x.date] || []).push(it); });
   Object.values(byDay).forEach(l=>l.sort((a,b)=>(a.x.time||'99').localeCompare(b.x.time||'99')));
+  if(calMode==='list') renderCalList(byDay); else renderCalGrid(byDay);
+}
 
+function renderCalGrid(byDay){
   const first = new Date(calY, calM, 1);
   const start = addDays(first, -first.getDay());
   const t = today();
@@ -878,10 +1239,52 @@ function renderCalendar(){
     const evs = byDay[k] || [];
     html += `<div class="cell ${d.getMonth()!==calM?'out':''} ${k===t?'today':''} ${(hol||d.getDay()===0)?'hday':''}">
       <div class="n"><b>${d.getDate()}</b>${hol?`<span class="hol">${hol}</span>`:''}</div>
-      ${evs.map(({r,x})=>`<div class="ev ${pClass(x.p)} ${x.state==='published'?'done':''} ${r.legacy?'old':''}" onclick="openPanel('${esc(r.id)}')" title="${esc(x.p+' '+(x.time||'')+' '+r.project+' / '+(x.owner||r.owner||'담당 미정'))}">${x.time?x.time+' ':''}${esc(x.p)} ${esc(r.project)}</div>`).join('')}
+      ${evs.map(({r,x})=>{
+        const who = x.owner || r.owner || '';
+        // 캘린더 칸이 좁아 소식지는 위치까지 짧게: "뉴스레터 소식지 상단" → "소식지 상단"
+        const pl = (x.p==='뉴스레터 소식지' && x.slot ? `소식지 ${x.slot}` : x.p) + (x.global ? ' · EN/JP' : '');
+        return `<div class="ev ${pClass(x.p)} ${x.state==='published'?'done':''} ${r.legacy?'old':''}" onclick="openPanel('${esc(r.id)}')"
+          title="${esc(r.project+'\n'+pl+(x.time?' '+x.time:'')+'\n담당 '+(who||'미정')+(x.state==='published'?'\n발행완료':''))}">
+          <div class="ev-meta"><span class="pl">${esc(pl)}</span>${x.time?`<span class="tm">· ${x.time}</span>`:''}${x.state==='published'?'<span class="done-tag">완료</span>':''}</div>
+          <div class="ev-proj">${esc(r.project)}</div>
+          <div class="ev-who">${ownerChip(who)}</div>
+        </div>`;
+      }).join('')}
     </div>`;
   }
   document.getElementById('cal').innerHTML = html;
+}
+
+// 리스트 보기: 이번 달 일정을 날짜별로
+function renderCalList(byDay){
+  const t = today();
+  const mm = `${calY}-${pad(calM+1)}`;
+  const days = Object.keys(byDay).filter(d=>d.startsWith(mm)).sort();
+  const box = document.getElementById('cal-list');
+  if(!days.length){ box.innerHTML = `<div class="cl-empty">${calM+1}월에 조건에 맞는 발행 일정이 없어요.</div>`; return; }
+  const grpColor = p => (CH_GROUPS.find(g=>g.places.includes(p))||{color:'#A3A199'}).color;
+  box.innerHTML = days.map(d=>{
+    const dt = parseDate(d), hol = holidayOf(dt), red = dt.getDay()===0 || dt.getDay()===6 || hol;
+    return `<div class="cl-day ${d===t?'is-today':''} ${d<t?'past':''}" ${d===t?'id="cl-today"':''}>
+      <div class="cl-date ${red?'red':''}">${dt.getMonth()+1}/${dt.getDate()} ${DOW[dt.getDay()]}<small>${hol||`${byDay[d].length}건`}</small></div>
+      <div class="cl-items">${byDay[d].map(({r,x})=>{
+        const who = x.owner || r.owner || '';
+        const first = String(who).split(/[,+]/)[0].trim();
+        const pl = x.p + (x.slot ? ` · ${x.slot}` : '') + (x.global ? ' · EN/JP' : '');
+        const done = x.state==='published';
+        return `<div class="cl-item ${done?'done':''}" onclick="openPanel('${esc(r.id)}')">
+          <span class="tm">${x.time||'—'}</span>
+          <span class="cl-ch"><i style="background:${grpColor(x.p)}"></i>${esc(pl)}</span>
+          <span class="cl-proj"><b>${esc(r.project)}</b><small>${esc(r.team)} ${esc(r.requester)}${r.legacy?' · 이전 양식':''}</small></span>
+          <span class="who">${who?`<span class="av" style="background:${ownerColor(first)}">${esc((first.length>=3?first.slice(1,2):first.slice(0,1)))}</span>${esc(first)}`:'<span class="av none">?</span><span style="color:var(--muted)">담당 미정</span>'}</span>
+          <span class="cl-state ${done?'done':'plan'}">${done?'발행완료':'예정'}</span>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+  // 이번 달이면 오늘 위치로 스크롤
+  const tEl = document.getElementById('cl-today');
+  if(tEl) requestAnimationFrame(()=>tEl.scrollIntoView({ block:'start', behavior:'auto' }));
 }
 
 // ══════════════════════════════════════
@@ -1343,9 +1746,10 @@ document.getElementById('status-seg').addEventListener('click', e=>{
   document.querySelectorAll('#status-seg button').forEach(x=>x.classList.toggle('on', x===b));
   renderRequests();
 });
-['f-cat','f-team','f-owner','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change', renderRequests));
+['f-cat','f-team','f-owner','f-place','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change', renderRequests));
 document.getElementById('f-q').addEventListener('input', renderRequests);
 ['c-owner','c-place'].forEach(id=>document.getElementById(id).addEventListener('change', renderCalendar));
+document.getElementById('cal-mode').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b) setCalMode(b.dataset.m); });
 ['a-team','a-place','a-month'].forEach(id=>document.getElementById(id).addEventListener('change', renderArchive));
 document.getElementById('a-q').addEventListener('input', renderArchive);
 document.getElementById('login-name').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
