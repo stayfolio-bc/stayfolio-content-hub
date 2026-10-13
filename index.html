@@ -224,6 +224,7 @@ tbody tr:last-child td{border-bottom:none}
 /* 게재 일정 표 */
 .plan td{padding:6px 6px;cursor:default}
 .plan tbody tr:hover td{background:none}
+.plan input:disabled,.plan select:disabled,.f input:disabled,.f select:disabled,.f textarea:disabled{background:var(--paper);color:var(--ink);opacity:1;cursor:default}
 .plan input,.plan select{width:100%;padding:6px 7px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:12.5px;background:var(--surface)}
 .plan .pname{font-weight:600;font-size:12.5px;min-width:108px}
 .plan .pname small{display:block;font-weight:400;color:var(--muted);font-size:11px}
@@ -323,7 +324,7 @@ tbody tr:last-child td{border-bottom:none}
     </nav>
     <div class="side-foot">
       <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-label">연결 전</span></div>
-      <div id="me"></div>
+      <div id="me"></div><div id="role" style="font-size:11.5px"></div>
       <button class="btn ghost sm" onclick="logout()" style="justify-content:flex-start;padding-left:0">이름 바꾸기</button>
     </div>
   </aside>
@@ -474,6 +475,8 @@ let reqStatus = 'open';
 const now = new Date();
 let calY = now.getFullYear(), calM = now.getMonth();
 let current = null;    // 열린 요청
+const normName = n => String(n||'').replace(/\s+/g,'');
+const canEdit = () => MEMBERS.some(m => normName(m) === normName(me));
 
 // ══════════════════════════════════════
 //  날짜 유틸 (브라우저 로컬 시간 = KST 기준)
@@ -560,7 +563,7 @@ function fromV2(o){
   return {
     legacy:false, id:o.id, row:o._row,
     submittedAt:o.submittedAt||'', submitted:toYmd(o.submittedAt),
-    team:o.team||'', requester:(o.requester||'').replace(/^@/,''),
+    team:o.team||'', requester:cleanName(o.requester),
     category:o.category||'', project:o.project||'',
     promoStart:toYmd(o.promoStart), promoEnd:toYmd(o.promoEnd), benefitPeriod:o.benefitPeriod||'',
     requested: splitList(o.placements).map(x=>normPlacement(x)||x),
@@ -603,6 +606,10 @@ function fromLegacy(o, i){
     plan, declined:'', memo:o.memo||'', detail:o.detail||'', refLink:o.refLink||'', deadline:toYmd(o.deadline),
   };
 }
+// 슬랙 표시 이름에 붙은 상태·부가 정보 제거: "@김민지 (10/12 off)" → "김민지"
+function cleanName(s){
+  return String(s||'').replace(/^@/,'').replace(/\s*[\(\[（【].*$/,'').replace(/\s*[|/·・-]\s.*$/,'').trim();
+}
 function extractUrl(s){ const m = String(s||'').match(/https?:\/\/\S+/); return m ? m[0] : ''; }
 function extractChannel(s){ const m = String(s||'').match(/^(#\S+?)(?=https?:|\s|$)/); return m ? m[1] : ''; }
 
@@ -644,8 +651,8 @@ function flagsOf(r){
 // ══════════════════════════════════════
 //  API
 // ══════════════════════════════════════
-async function load(){
-  setConn('loading');
+async function load(silent){
+  if(!silent) setConn('loading');
   try{
     const res = await fetch(API_URL);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -653,7 +660,11 @@ async function load(){
     if(j.ok === false) throw new Error(j.error);
     MEMBERS = j.members || [];
     ALL = [ ...(j.data||[]).map(fromV2), ...(j.legacy||[]).map(fromLegacy) ];
+    // 상세창을 열어둔 채 새로 불러와도 작성 중인 내용은 그대로 두고, 저장 대상만 새 데이터로 연결
+    if(current) current = ALL.find(x=>x.id===current.id) || current;
+    lastLoad = Date.now();
     setConn('ok');
+    updateRole();
     document.getElementById('sync-label').textContent = '동기화 ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     fillFilters();
     render();
@@ -662,7 +673,7 @@ async function load(){
   }catch(e){
     console.error(e);
     setConn('err');
-    toast('시트를 불러오지 못했어요. Apps Script 배포 URL과 권한을 확인해 주세요. (' + e.message + ')', 5000);
+    if(!silent) toast('시트를 불러오지 못했어요. Apps Script 배포 URL과 권한을 확인해 주세요. (' + e.message + ')', 5000);
   }
 }
 async function save(id, fields){
@@ -670,6 +681,21 @@ async function save(id, fields){
   if(!res.ok) throw new Error('HTTP '+res.status);
   const j = await res.json().catch(()=>({ok:true}));
   if(j.ok === false) throw new Error(j.error);
+}
+// 5분마다 자동으로 다시 불러옴 (탭이 보일 때만). 다른 탭에 있다 돌아오면 5분 지났을 때 바로 불러옴
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+let lastLoad = 0, autoTimer = null;
+function startAutoRefresh(){
+  clearInterval(autoTimer);
+  autoTimer = setInterval(()=>{ if(!document.hidden && !saving) load(true); }, AUTO_REFRESH_MS);
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden && Date.now() - lastLoad > AUTO_REFRESH_MS && !saving) load(true);
+  });
+}
+function updateRole(){
+  const el = document.getElementById('role');
+  el.textContent = canEdit() ? '콘텐츠팀 · 수정 가능' : '보기 전용';
+  el.style.color = canEdit() ? 'var(--pine)' : 'var(--muted)';
 }
 function setConn(s){
   document.getElementById('conn-dot').className = 'dot' + (s==='ok'?' ok':s==='err'?' err':'');
@@ -951,10 +977,17 @@ function openPanel(id){
     `<button class="btn sm" onclick="copyText(location.href,'허브 링크를 복사했어요')">허브 링크 복사</button>`;
 
   document.getElementById('p-body').innerHTML = r.legacy ? legacyBody(r) : v2Body(r);
+  const editable = !r.legacy && canEdit();
   document.getElementById('p-foot').innerHTML = r.legacy
     ? `<span class="msg">10월 13일 이전 양식으로 접수된 건이라 읽기만 할 수 있어요.</span><button class="btn" onclick="closePanel()">닫기</button>`
-    : `<span class="msg" id="p-msg"></span><button class="btn" onclick="copyReply()">회신 메시지 복사</button><button class="btn primary" id="p-save" onclick="savePanel()">시트에 저장</button>`;
-  if(!r.legacy){ renderPlanRows(); bindPanel(); requestAnimationFrame(watchTimeline); }
+    : editable
+      ? `<span class="msg" id="p-msg"></span><button class="btn" onclick="copyReply()">회신 메시지 복사</button><button class="btn primary" id="p-save" onclick="savePanel()">시트에 저장</button>`
+      : `<span class="msg">진행 상황 보기 전용이에요. 문의나 일정 변경은 요청 스레드에 남겨 주세요.</span><button class="btn" onclick="closePanel()">닫기</button>`;
+  if(!r.legacy){
+    renderPlanRows();
+    if(editable) bindPanel(); else lockPanel();
+    requestAnimationFrame(watchTimeline);
+  }
 
   let full = false; try{ full = localStorage.getItem('hub_panel_full')==='1'; }catch(e){}
   applyFull(full);
@@ -1104,6 +1137,7 @@ function v2Body(r){
 }
 
 let draftPlan = [];
+let saving = false;
 function renderPlanRows(){
   const r = current;
   if(!draftPlan._for || draftPlan._for !== r.id){
@@ -1125,6 +1159,7 @@ function renderPlanRows(){
       <td><button class="x" onclick="removePlan(${i})" aria-label="${esc(x.p)} 삭제">×</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" class="empty">게재위치를 추가해 주세요.</td></tr>`;
+  if(!canEdit()) document.querySelectorAll('#plan-body input,#plan-body select').forEach(el=>{ el.disabled = true; });
 }
 function bindPanel(){
   document.getElementById('plan-body').onchange = e=>{
@@ -1138,6 +1173,13 @@ function bindPanel(){
     draftPlan.forEach(x=>{ if(!x.owner) x.owner = e.target.value; });
     renderPlanRows();
   };
+}
+// 보기 전용: 입력칸 잠그고 추가·삭제·메모 숨김
+function lockPanel(){
+  const body = document.getElementById('p-body');
+  body.querySelectorAll('input,select,textarea').forEach(el=>{ el.disabled = true; });
+  body.querySelectorAll('.add-row,.plan .x').forEach(el=>el.remove());
+  const memo = document.getElementById('e-memo'); if(memo) memo.closest('.sec').remove();
 }
 function addPlan(){
   const p = val('add-p');
@@ -1160,6 +1202,7 @@ async function savePanel(){
     draftShareAt: val('e-draft').replace('T',' '), kickoff: val('e-kickoff'),
     plan: JSON.stringify(plan), declined: val('e-declined').trim(), memo: val('e-memo').trim(),
   };
+  saving = true;
   btn.disabled = true; btn.textContent = '저장 중'; msg.textContent = ''; msg.className = 'msg';
   try{
     await save(r.id, fields);
@@ -1173,6 +1216,7 @@ async function savePanel(){
   }catch(e){
     msg.textContent = '저장하지 못했어요: ' + e.message; msg.className = 'msg err';
   }
+  saving = false;
   btn.disabled = false; btn.textContent = '시트에 저장';
 }
 
@@ -1250,6 +1294,7 @@ function start(){
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('me').textContent = me + ' 님';
   load();
+  startAutoRefresh();
 }
 
 document.getElementById('nav').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b) go(b.dataset.v); });
