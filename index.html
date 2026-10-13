@@ -236,6 +236,32 @@ tbody tr:last-child td{border-bottom:none}
 .add-row select{padding:6px 9px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:12.5px}
 
 /* 안내 */
+.ico{width:20px;height:20px;flex-shrink:0;display:inline-block;vertical-align:middle}
+.ico-chip{width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.ico-chip.pine{background:var(--pine-soft);color:var(--pine)}
+.ico-chip.info{background:var(--info-soft);color:var(--info)}
+.ico-chip.warn{background:var(--warn-soft);color:var(--warn)}
+.ico-chip.plum{background:var(--plum-soft);color:var(--plum)}
+.ico-chip.ink{background:var(--sunk);color:var(--ink)}
+.ico-chip.ig{background:#F7E9EF;color:#8E3A5D}
+.ico-chip.yt{background:#FBE7E4;color:#A2301F}
+.withico{display:flex;align-items:center;gap:12px}
+.g-rules{display:flex;flex-direction:column;gap:14px;padding:16px 18px}
+.g-rule{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;line-height:1.6}
+.g-rule b{display:block}
+.g-rule span{color:var(--muted);font-size:12.5px}
+.dstrip{display:grid;grid-template-columns:1fr 1fr 1fr;margin:2px 18px 18px;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;text-align:center;font-size:12px}
+.dstrip div{padding:8px 6px;border-right:1px solid var(--line);color:var(--muted)}
+.dstrip div:last-child{border-right:none}
+.dstrip b{display:block;font-size:15px;color:var(--ink)}
+.dstrip .win{background:var(--pine-soft)}
+.dstrip .win b{color:var(--pine)}
+.dstrip .end b{color:var(--warn)}
+.steps{list-style:none;padding:16px 18px 6px;display:flex;flex-direction:column}
+.steps li{display:flex;gap:12px;position:relative;padding-bottom:14px;font-size:13.5px;line-height:1.6}
+.steps li:not(:last-child)::before{content:"";position:absolute;left:16px;top:36px;bottom:2px;width:2px;background:var(--line)}
+.steps li > div{padding-top:6px}
+.steps li small{display:block;color:var(--muted);font-size:12px}
 .guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 .guide .block{margin:0}
 .guide .g-body{padding:16px 18px;font-size:13.5px;line-height:1.7}
@@ -844,35 +870,66 @@ function renderArchive(){
 // ══════════════════════════════════════
 //  안내
 // ══════════════════════════════════════
+// 픽토그램 (24px 선 아이콘, 글자색을 따라감)
+const IC = {
+  megaphone:'<path d="M3 10v4h3l6 4V6L6 10H3z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M19 6.5a8 8 0 0 1 0 11"/>',
+  app:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/><path d="M9 7h6M9 10.5h6"/>',
+  chat:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/>',
+  calendar:'<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M8 14h3"/>',
+  send:'<path d="M21 3 10 14"/><path d="m21 3-6.5 18-4.5-7-7-4.5z"/>',
+  reply:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v4"/>',
+  doc:'<path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/>',
+  reels:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 8.5h18M8 3l2.5 5.5M13.5 3 16 8.5"/><path d="m10.5 12.5 4 2.5-4 2.5z"/>',
+  play:'<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/>',
+  star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
+  home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>',
+};
+const icon = (name, tone='pine') => `<span class="ico-chip ${tone}" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${IC[name]}</svg></span>`;
+
 function renderGuide(){
+  const tpl = BRIEF_TEMPLATE_URL ? `<a href="${esc(BRIEF_TEMPLATE_URL)}" target="_blank" rel="noopener">노션 요청서 템플릿</a>` : '노션 요청서 템플릿';
   document.getElementById('guide').innerHTML = `
   <div class="block wide"><div class="block-head"><h3>요청 창구</h3><span class="sub">2026년 10월 13일부터 적용</span>
     ${WORKFLOW_URL?`<div class="right"><a class="btn primary sm" href="${esc(WORKFLOW_URL)}" target="_blank" rel="noopener">슬랙에서 요청하기</a></div>`:''}</div>
     <div class="tbl-wrap"><table><thead><tr><th>무엇을</th><th>어디로</th></tr></thead><tbody>
-      <tr><td>인스타그램, 스레드, 뉴스레터, 유튜브, 블로그 (온드미디어)</td><td>${REQUEST_CHANNEL} 워크플로 <b>콘텐츠_온드미디어 협업 요청</b></td></tr>
-      <tr><td>인앱 페이지, 메인 배너, 모달 배너, 셀렉션, CMS 기획전 텍스트, 카피워싱</td><td>프로덕트 크리에이티브팀 워크플로</td></tr>
-      <tr><td>접수 전에 확인이 필요한 건</td><td>${DISCUSS_CHANNEL} 채널에서 먼저 논의</td></tr>
+      <tr><td><div class="withico">${icon('megaphone','pine')}인스타그램, 스레드, 뉴스레터, 유튜브, 블로그 (온드미디어)</div></td><td>${REQUEST_CHANNEL} 워크플로 <b>콘텐츠_온드미디어 협업 요청</b></td></tr>
+      <tr><td><div class="withico">${icon('app','info')}인앱 페이지, 메인 배너, 모달 배너, 셀렉션, CMS 기획전 텍스트, 카피워싱</div></td><td>프로덕트 크리에이티브팀 워크플로</td></tr>
+      <tr><td><div class="withico">${icon('chat','ink')}접수 전에 확인이 필요한 건</div></td><td>${DISCUSS_CHANNEL} 채널에서 먼저 논의</td></tr>
     </tbody></table></div>
     <div class="g-body" style="padding-top:10px;color:var(--muted);font-size:12.5px">한 프로모션에 두 가지가 모두 필요하면 각 창구에 따로 접수해 주세요. 제작 자료는 요청 건별로 요청자가 정리해요.</div>
   </div>
-  <div class="block"><div class="block-head"><h3>일정 기준</h3></div><div class="g-body">
-    <p><b>접수는 오픈일 D-5까지.</b> 요청서의 모든 항목이 채워진 날을 접수일로 봐요. 미리 알려주셨더라도 D-5에는 다 채워져 있어야 해요.</p>
-    <p><b>발행은 오픈일부터 D+5 사이.</b> 전체 온드미디어 캘린더에 맞춰 날짜를 정해 회신드려요.</p>
-    <p><b>회신은 접수 다음 영업일까지.</b> 가능하면 당일에 회신해요.</p>
-  </div></div>
-  <div class="block"><div class="block-head"><h3>접수부터 발행까지</h3></div><div class="g-body"><ol>
-    <li>${BRIEF_TEMPLATE_URL?`<a href="${esc(BRIEF_TEMPLATE_URL)}" target="_blank" rel="noopener">노션 요청서 템플릿</a>에서`:'노션 요청서 템플릿에서'} 새 요청서를 만들어 작성한 뒤 워크플로를 제출해요. 작성한 요청서의 링크가 없으면 제출할 수 없어요.</li>
-    <li>콘텐츠실무 그룹에 자동 멘션되고, 이 허브에 접수대기로 표시돼요.</li>
-    <li>브랜드팀이 담당자, 브리프 확정일, 게재위치별 일정을 스레드로 회신해요.</li>
-    <li>제작 후 시안을 스레드에 공유하면 요청팀이 검수해요.</li>
-    <li>발행하고 허브에서 상태를 업데이트해요.</li>
-  </ol><p style="margin-top:10px;color:var(--muted);font-size:12.5px">일정이 바뀌면 시트나 노션만 고치지 말고 요청 스레드에 멘션해 주세요.</p></div></div>
+  <div class="block"><div class="block-head"><h3>일정 기준</h3></div>
+    <div class="g-rules">
+      <div class="g-rule">${icon('calendar','warn')}<div><b>접수는 오픈일 D-5까지</b><span>요청서의 모든 항목이 채워진 날을 접수일로 봐요. 미리 알려주셨더라도 D-5에는 다 채워져 있어야 해요.</span></div></div>
+      <div class="g-rule">${icon('reply','info')}<div><b>회신은 접수 다음 영업일까지</b><span>가능하면 당일에 회신해요.</span></div></div>
+      <div class="g-rule">${icon('send','pine')}<div><b>발행은 오픈일부터 D+5 사이</b><span>전체 온드미디어 캘린더에 맞춰 날짜를 정해 회신드려요.</span></div></div>
+    </div>
+    <div class="dstrip" aria-label="일정 요약">
+      <div><b>D-5</b>접수 마감</div>
+      <div class="win"><b>D</b>오픈, 발행 시작</div>
+      <div class="end win"><b>D+5</b>발행 마감</div>
+    </div>
+  </div>
+  <div class="block"><div class="block-head"><h3>접수부터 발행까지</h3></div>
+    <ol class="steps">
+      <li>${icon('doc','ink')}<div>${tpl}에서 새 요청서를 만들어 작성한 뒤 워크플로를 제출해요.<small>작성한 요청서의 링크가 없으면 제출할 수 없어요.</small></div></li>
+      <li>${icon('bell','ink')}<div>콘텐츠실무 그룹에 자동 멘션되고, 이 허브에 접수대기로 표시돼요.</div></li>
+      <li>${icon('reply','info')}<div>브랜드팀이 담당자, 브리프 확정일, 게재위치별 일정을 스레드로 회신해요.</div></li>
+      <li>${icon('eye','plum')}<div>제작 후 시안을 스레드에 공유하면 요청팀이 검수해요.</div></li>
+      <li>${icon('check','pine')}<div>발행하고 허브에서 상태를 업데이트해요.</div></li>
+    </ol>
+    <div class="g-body" style="padding-top:0;color:var(--muted);font-size:12.5px">일정이 바뀌면 시트나 노션만 고치지 말고 요청 스레드에 멘션해 주세요.</div>
+  </div>
   <div class="block wide"><div class="block-head"><h3>게재위치별 참고</h3></div><div class="tbl-wrap"><table><tbody>
-    <tr><td style="width:180px">IG 릴스</td><td>영상 소스가 꼭 필요해요. 발행일은 따로 회신드려요.</td></tr>
-    <tr><td>유튜브</td><td>발행일은 따로 회신드려요.</td></tr>
-    <tr><td>뉴스레터 소식지</td><td>상단, 중단, 더보기 중 위치를 정해 회신드려요.</td></tr>
-    <tr><td>메인 기획전</td><td>숙세, IP, BS50 등은 킥오프 미팅이 필수예요.</td></tr>
-    <tr><td>호스트 검수</td><td>참여 스테이 검수가 필요하면 제작 마감이 하루 늘어나요.</td></tr>
+    <tr><td style="width:200px"><div class="withico">${icon('reels','ig')}IG 릴스</div></td><td>영상 소스가 꼭 필요해요. 발행일은 따로 회신드려요.</td></tr>
+    <tr><td><div class="withico">${icon('play','yt')}유튜브</div></td><td>발행일은 따로 회신드려요.</td></tr>
+    <tr><td><div class="withico">${icon('mail','info')}뉴스레터 소식지</div></td><td>상단, 중단, 더보기 중 위치를 정해 회신드려요.</td></tr>
+    <tr><td><div class="withico">${icon('star','warn')}메인 기획전</div></td><td>숙세페, IP, BS50 등은 킥오프 미팅이 필수예요.</td></tr>
+    <tr><td><div class="withico">${icon('home','pine')}호스트 검수</div></td><td>참여 스테이 검수가 필요하면 제작 마감이 하루 늘어나요.</td></tr>
   </tbody></table></div></div>`;
 }
 
