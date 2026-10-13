@@ -171,6 +171,12 @@ tbody tr:last-child td{border-bottom:none}
 .panel.on{transform:none}
 @media (prefers-reduced-motion:reduce){.panel{transition:none}}
 .p-head{padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+/* 전체화면: 패널을 화면 가득 펼치고 내용은 가운데 1080px 폭으로 */
+.panel.full{width:100%}
+.panel.full .p-head,.panel.full .p-body,.panel.full .p-foot{padding-left:max(22px,calc((100% - 1080px)/2));padding-right:max(22px,calc((100% - 1080px)/2))}
+.panel.full .form{grid-template-columns:repeat(3,minmax(0,1fr))}
+.panel.full .kv{grid-template-columns:140px 1fr}
+.p-tools{display:flex;gap:4px;flex-shrink:0}
 .p-head .row{display:flex;gap:8px;align-items:flex-start}
 .p-head h3{font-size:18px;font-weight:700;letter-spacing:-0.01em;line-height:1.35;flex:1}
 .p-head .meta{font-size:12.5px;color:var(--muted);margin-top:4px}
@@ -243,6 +249,8 @@ tbody tr:last-child td{border-bottom:none}
   .guide{grid-template-columns:1fr}
 }
 @media (max-width:760px){
+  #p-expand{display:none}
+  .panel.full .form{grid-template-columns:1fr}
   .side{position:fixed;z-index:70;height:100%;transform:translateX(-100%);transition:transform .2s}
   .side.open{transform:none}
   .menu-btn{display:inline-flex}
@@ -372,7 +380,7 @@ tbody tr:last-child td{border-bottom:none}
 <div class="overlay" id="overlay" onclick="closePanel()"></div>
 <aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="p-title">
   <div class="p-head">
-    <div class="row"><h3 id="p-title"></h3><button class="btn ghost sm" onclick="closePanel()" aria-label="닫기">✕</button></div>
+    <div class="row"><h3 id="p-title"></h3><div class="p-tools"><button class="btn ghost sm" id="p-expand" onclick="toggleFull()" aria-pressed="false">⤢ 전체화면</button><button class="btn ghost sm" onclick="closePanel()" aria-label="닫기">✕</button></div></div>
     <div class="meta" id="p-meta"></div>
     <div class="links" id="p-links"></div>
   </div>
@@ -743,7 +751,7 @@ function fillFilters(){
     sel.innerHTML = first + list.map(x=>`<option>${esc(x)}</option>`).join('');
     if(keep && list.includes(cur)) sel.value = cur;
   };
-  fill('f-cat', CATEGORIES, true);
+  fill('f-cat', [...new Set(v2.map(r=>r.category).filter(Boolean))].sort(), true);
   fill('f-team', [...new Set(v2.map(r=>r.team).filter(Boolean))].sort(), true);
   fill('f-owner', MEMBERS, true);
   fill('c-owner', MEMBERS, true);
@@ -760,7 +768,7 @@ function renderRequests(){
   let list = ALL.filter(r=>!r.legacy);
   if(reqStatus==='open') list = list.filter(isOpen);
   else if(reqStatus!=='all') list = list.filter(r=>r.status===reqStatus);
-  if(cat) list = list.filter(r=>r.category.startsWith(cat));
+  if(cat) list = list.filter(r=>r.category===cat);
   if(team) list = list.filter(r=>r.team===team);
   if(owner) list = list.filter(r=>r.owner.includes(owner) || r.plan.some(x=>String(x.owner).includes(owner)));
   if(q) list = list.filter(r=>(r.project+r.requester+r.team).toLowerCase().includes(q));
@@ -882,8 +890,22 @@ function openPanel(id){
     : `<span class="msg" id="p-msg"></span><button class="btn" onclick="copyReply()">회신 메시지 복사</button><button class="btn primary" id="p-save" onclick="savePanel()">시트에 저장</button>`;
   if(!r.legacy){ renderPlanRows(); bindPanel(); }
 
+  let full = false; try{ full = localStorage.getItem('hub_panel_full')==='1'; }catch(e){}
+  applyFull(full);
   document.getElementById('overlay').classList.add('on');
   document.getElementById('panel').classList.add('on');
+}
+// 전체화면 상태는 브라우저에 기억해서 다음에 열 때도 유지
+function applyFull(on){
+  document.getElementById('panel').classList.toggle('full', on);
+  const b = document.getElementById('p-expand');
+  b.textContent = on ? '⤡ 창으로 보기' : '⤢ 전체화면';
+  b.setAttribute('aria-pressed', on);
+}
+function toggleFull(){
+  const on = !document.getElementById('panel').classList.contains('full');
+  try{ localStorage.setItem('hub_panel_full', on ? '1' : ''); }catch(e){}
+  applyFull(on);
 }
 function closePanel(){
   document.getElementById('overlay').classList.remove('on');
