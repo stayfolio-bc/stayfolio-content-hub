@@ -661,7 +661,10 @@ async function load(silent){
     MEMBERS = j.members || [];
     ALL = [ ...(j.data||[]).map(fromV2), ...(j.legacy||[]).map(fromLegacy) ];
     // 상세창을 열어둔 채 새로 불러와도 작성 중인 내용은 그대로 두고, 저장 대상만 새 데이터로 연결
-    if(current) current = ALL.find(x=>x.id===current.id) || current;
+    if(current){
+      current = ALL.find(x=>x.id===current.id) || current;
+      if(!current.legacy && (current.updatedAt||'') !== baseVersion && canEdit()) showStaleNotice(current.updatedAt);
+    }
     lastLoad = Date.now();
     setConn('ok');
     updateRole();
@@ -676,11 +679,20 @@ async function load(silent){
     if(!silent) toast('시트를 불러오지 못했어요. Apps Script 배포 URL과 권한을 확인해 주세요. (' + e.message + ')', 5000);
   }
 }
-async function save(id, fields){
-  const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({ action:'update', id, fields, user:me }) });
+async function save(id, fields, opts={}){
+  const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({ action:'update', id, fields, user:me, expect:opts.expect||'', force:!!opts.force }) });
   if(!res.ok) throw new Error('HTTP '+res.status);
   const j = await res.json().catch(()=>({ok:true}));
+  if(j.conflict){ const err = new Error(j.error); err.conflict = true; err.updatedAt = j.updatedAt; throw err; }
   if(j.ok === false) throw new Error(j.error);
+  return j;
+}
+// "2026-10-13 14:20:05 김지원" → { who:'김지원', when:'10/13(화) 14:20' }
+function stampInfo(stamp){
+  const m = String(stamp||'').match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})(?::\d{2})?\s*(.*)$/);
+  if(!m) return { who:'', when:String(stamp||'') };
+  return { who:m[3].trim(), when:`${short(m[1])} ${m[2]}` };
 }
 // 5분마다 자동으로 다시 불러옴 (탭이 보일 때만). 다른 탭에 있다 돌아오면 5분 지났을 때 바로 불러옴
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
@@ -966,6 +978,7 @@ function openPanel(id){
   const r = ALL.find(x=>x.id===id);
   if(!r) return;
   current = r;
+  baseVersion = r.updatedAt || '';
   draftPlan._for = null;
   const url = new URL(location); url.searchParams.set('req', id); history.replaceState(null,'',url);
 
@@ -981,7 +994,7 @@ function openPanel(id){
   document.getElementById('p-foot').innerHTML = r.legacy
     ? `<span class="msg">10월 13일 이전 양식으로 접수된 건이라 읽기만 할 수 있어요.</span><button class="btn" onclick="closePanel()">닫기</button>`
     : editable
-      ? `<span class="msg" id="p-msg"></span><button class="btn" onclick="copyReply()">회신 메시지 복사</button><button class="btn primary" id="p-save" onclick="savePanel()">시트에 저장</button>`
+      ? `<span class="msg" id="p-msg" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"></span><button class="btn" onclick="copyReply()">회신 메시지 복사</button><button class="btn primary" id="p-save" onclick="savePanel()">시트에 저장</button>`
       : `<span class="msg">진행 상황 보기 전용이에요. 문의나 일정 변경은 요청 스레드에 남겨 주세요.</span><button class="btn" onclick="closePanel()">닫기</button>`;
   if(!r.legacy){
     renderPlanRows();
@@ -1110,7 +1123,7 @@ function v2Body(r){
       <dt>혜택 적용 기간</dt><dd>${esc(r.benefitPeriod)||'—'}</dd>
       <dt>희망 게재위치</dt><dd>${chips(r.requested)}</dd>
       <dt>요청서</dt><dd>${r.briefUrl && !isUrl(r.briefUrl)?`<span class="flag bad">링크가 아니에요</span><div class="detail-text" style="margin-top:6px">${esc(r.briefUrl)}</div>`:r.briefUrl?`<a href="${esc(r.briefUrl)}" target="_blank" rel="noopener">${esc(r.briefUrl)}</a>${isTemplateLink(r.briefUrl)?' <span class="flag bad">템플릿 링크 그대로 제출됨</span>':''}`:'<span class="flag bad">링크 없음</span>'}</dd>
-      ${r.updatedAt?`<dt>최종 수정</dt><dd class="who">${esc(r.updatedAt)}</dd>`:''}
+      ${r.updatedAt?`<dt>최종 수정</dt><dd class="who">${esc(stampInfo(r.updatedAt).when)} ${esc(stampInfo(r.updatedAt).who)}</dd>`:''}
     </dl>
   </div>
   <div class="sec">
@@ -1138,6 +1151,7 @@ function v2Body(r){
 
 let draftPlan = [];
 let saving = false;
+let baseVersion = '';   // 상세창을 열었을 때의 '최종 수정' 값
 function renderPlanRows(){
   const r = current;
   if(!draftPlan._for || draftPlan._for !== r.id){
@@ -1188,7 +1202,7 @@ function addPlan(){
 }
 function removePlan(i){ draftPlan.splice(i,1); renderPlanRows(); }
 
-async function savePanel(){
+async function savePanel(force){
   const r = current, btn = document.getElementById('p-save'), msg = document.getElementById('p-msg');
   let status = val('e-status');
   let replied = val('e-replied');
@@ -1205,7 +1219,8 @@ async function savePanel(){
   saving = true;
   btn.disabled = true; btn.textContent = '저장 중'; msg.textContent = ''; msg.className = 'msg';
   try{
-    await save(r.id, fields);
+    const j = await save(r.id, fields, { expect: baseVersion, force: force===true });
+    if(j && j.updatedAt){ r.updatedAt = j.updatedAt; baseVersion = j.updatedAt; }
     Object.assign(r, { status, owner:fields.owner, repliedAt:replied, briefDate:fields.briefDate, draftShareAt:fields.draftShareAt,
       kickoff:fields.kickoff, plan, declined:fields.declined, memo:fields.memo });
     draftPlan._for = null;
@@ -1214,10 +1229,34 @@ async function savePanel(){
     document.getElementById('e-status').value = status;
     render();
   }catch(e){
-    msg.textContent = '저장하지 못했어요: ' + e.message; msg.className = 'msg err';
+    if(e.conflict) showConflict(e.updatedAt);
+    else { msg.textContent = '저장하지 못했어요: ' + e.message; msg.className = 'msg err'; }
   }
   saving = false;
   btn.disabled = false; btn.textContent = '시트에 저장';
+}
+
+// 동시 수정: 저장하려는데 그사이 다른 사람이 먼저 저장한 경우
+function showConflict(stamp){
+  const { who, when } = stampInfo(stamp);
+  const msg = document.getElementById('p-msg');
+  msg.className = 'msg err';
+  msg.innerHTML = `${esc(who||'다른 사람')} 님이 ${esc(when)}에 먼저 수정했어요. 저장하지 않았어요.
+    <button class="btn sm" onclick="reloadCurrent()">최신 내용 보기</button>
+    <button class="btn sm" onclick="if(confirm('상대가 바꾼 내용을 내 내용으로 덮어써요. 계속할까요?')) savePanel(true)">내 내용으로 덮어쓰기</button>`;
+}
+// 상세창을 열어둔 사이 자동 새로고침에서 변경을 발견한 경우
+function showStaleNotice(stamp){
+  const msg = document.getElementById('p-msg');
+  if(!msg) return;
+  const { who, when } = stampInfo(stamp);
+  msg.className = 'msg err';
+  msg.innerHTML = `${esc(who||'다른 사람')} 님이 ${esc(when)}에 이 요청을 수정했어요. <button class="btn sm" onclick="reloadCurrent()">최신 내용 보기</button>`;
+}
+async function reloadCurrent(){
+  const id = current && current.id;
+  await load(true);
+  if(id) openPanel(id);
 }
 
 // 노션 6번 "브랜드팀 접수 회신 양식" 그대로 슬랙에 붙여넣을 수 있게
