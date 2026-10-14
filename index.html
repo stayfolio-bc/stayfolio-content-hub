@@ -335,6 +335,7 @@ tbody tr:last-child td{border-bottom:none}
 .plan .pname select{display:block;width:100%;margin-top:4px}
 .plan input.out{border-color:var(--warn);background:var(--warn-soft)}
 .plan tr.skip td:not(:first-child):not(:last-child) input,.plan tr.skip td:not(:first-child):not(:last-child) select:not(.state){opacity:.35}
+.plan .auto-tag{display:block;font-size:10.5px;color:var(--ok);margin-top:3px;text-align:center}
 .plan .x{border:none;background:none;color:var(--faint);font-size:16px;padding:2px 6px}
 .plan .x:hover{color:var(--bad)}
 .add-row{display:flex;gap:6px;margin-top:10px}
@@ -817,7 +818,8 @@ function fromOwn(o){
     category:'자체 콘텐츠', owner:o.owner||'', status: o.state==='발행완료' ? 'published' : 'making',
     link:o.link||'', memo:o.memo||'', updatedAt:o.updatedAt||'', requested:[o.p],
     plan:[{ p:o.p, date:toYmd(o.date), time:timeOf(o.time), count:1, owner:o.owner||'', global:false,
-            state: o.state==='발행완료' ? 'published' : 'planned', slot:'', note:'' }],
+            state: o.state==='발행완료' ? 'published' : 'planned', slot:'', note:'',
+            auto: o.state==='발행완료' && toYmd(o.date) < today() }],
   };
 }
 function extractUrl(s){ const m = String(s||'').match(/https?:\/\/\S+/); return m ? m[0] : ''; }
@@ -1359,14 +1361,16 @@ async function moveSchedule(id, i, newDate){
   const isOwn = String(id).startsWith('OWN-');
   const r = (isOwn ? OWN : ALL).find(x=>x.id===id);
   if(!r || !r.plan[i]) return;
-  const x = r.plan[i], oldDate = x.date;
+  const x = r.plan[i], oldDate = x.date, oldState = x.state, oldAuto = x.auto;
   if(oldDate === newDate) return;
+  // 자동으로 발행완료된 일정을 오늘 이후로 옮기면 실제로는 미뤄진 것이므로 다시 '예정'
+  if(x.auto && newDate >= today()){ x.state = 'planned'; delete x.auto; }
   // 화면 먼저 반영, 실패하면 되돌림
   x.date = newDate; renderCalendar();
   try{
     let j;
-    if(isOwn) j = await ownApi('updateOwn', { id, fields:{ date:newDate }, expect:r.updatedAt });
-    else j = await save(id, { plan: JSON.stringify(r.plan.map(({p,date,time,count,owner,global,state,slot,note})=>({p,date,time,count,owner,global,state,slot,note}))) }, { expect:r.updatedAt });
+    if(isOwn) j = await ownApi('updateOwn', { id, fields:{ date:newDate, ...(x.state!==oldState?{state:'예정'}:{}) }, expect:r.updatedAt });
+    else j = await save(id, { plan: JSON.stringify(r.plan.map(({p,date,time,count,owner,global,state,slot,note,auto})=>({p,date,time,count,owner,global,state,slot,note,...(auto?{auto:true}:{})}))) }, { expect:r.updatedAt });
     if(j && j.updatedAt) r.updatedAt = j.updatedAt;
     const label = `${x.p} ${short(oldDate)} → ${short(newDate)}`;
     if(isOwn){ toast(`${esc(r.project)} · ${esc(label)}로 옮겼어요.`, 3500, true); }
@@ -1377,7 +1381,7 @@ async function moveSchedule(id, i, newDate){
     }
     if(view==='dashboard') render();
   }catch(e){
-    x.date = oldDate; renderCalendar();
+    x.date = oldDate; x.state = oldState; if(oldAuto) x.auto = true; renderCalendar();
     if(e.conflict) toast('다른 사람이 먼저 수정한 일정이라 옮기지 않았어요. 새로고침 후 다시 시도해 주세요.', 5000);
     else toast('옮기지 못했어요: ' + e.message, 5000);
   }
@@ -1739,7 +1743,7 @@ function v2Body(r){
     </div>
   </div>
   <div class="sec">
-    <h4>게재위치별 일정 <span class="hint">발행 기간 ${short(r.promoStart)} ~ ${short(windowEnd(r))}</span></h4>
+    <h4>게재위치별 일정 <span class="hint">발행 기간 ${short(r.promoStart)} ~ ${short(windowEnd(r))} · 발행 시각이 지나면 자동으로 발행완료</span></h4>
     <div class="tbl-wrap"><table class="plan"><thead><tr><th>게재위치</th><th>일자</th><th>시간</th><th>건수</th><th>담당</th><th>EN/JP</th><th>상태</th><th></th></tr></thead><tbody id="plan-body"></tbody></table></div>
     <div class="add-row"><select id="add-p">${PLACEMENTS.map(p=>`<option>${p}</option>`).join('')}</select><button class="btn sm" onclick="addPlan()">게재위치 추가</button></div>
   </div>
@@ -1769,7 +1773,7 @@ function renderPlanRows(){
       <td><input type="number" min="1" data-i="${i}" data-k="count" value="${esc(x.count||1)}" style="width:52px"></td>
       <td><select data-i="${i}" data-k="owner">${memberOpts(x.owner)}</select></td>
       <td style="text-align:center"><input type="checkbox" data-i="${i}" data-k="global" ${x.global?'checked':''} style="width:auto" aria-label="글로벌 버전"></td>
-      <td><select class="state" data-i="${i}" data-k="state">${ITEM_STATE.map(s=>`<option value="${s.key}" ${s.key===x.state?'selected':''}>${s.label}</option>`).join('')}</select></td>
+      <td><select class="state" data-i="${i}" data-k="state">${ITEM_STATE.map(s=>`<option value="${s.key}" ${s.key===x.state?'selected':''}>${s.label}</option>`).join('')}</select>${x.auto?'<small class="auto-tag" title="발행 시각이 지나 자동으로 발행완료 처리됐어요">자동 처리</small>':''}</td>
       <td><button class="x" onclick="removePlan(${i})" aria-label="${esc(x.p)} 삭제">×</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" class="empty">게재위치를 추가해 주세요.</td></tr>`;
@@ -1780,6 +1784,7 @@ function bindPanel(){
     const el = e.target, i = +el.dataset.i, k = el.dataset.k;
     if(isNaN(i) || !k) return;
     draftPlan[i][k] = el.type==='checkbox' ? el.checked : k==='count' ? Math.max(1, +el.value||1) : el.value;
+    if(k==='state' || k==='date' || k==='time') delete draftPlan[i].auto;
     renderPlanRows();
   };
   document.getElementById('e-owner').onchange = e=>{
@@ -1807,7 +1812,11 @@ async function savePanel(force){
   let status = val('e-status');
   let replied = val('e-replied');
   if(status!=='new' && !replied) replied = today();             // 접수대기에서 넘어가면 회신일 자동 기록
-  const plan = draftPlan.map(({p,date,time,count,owner,global,state,slot,note})=>({p,date,time,count,owner,global,state,slot,note}));
+  const plan = draftPlan.map(({p,date,time,count,owner,global,state,slot,note,auto})=>({p,date,time,count,owner,global,state,slot,note,...(auto?{auto:true}:{})}));
+  // 발행 시각이 지났는데 '예정'으로 둔 일정은 다음 자동 처리 때 다시 발행완료가 됨
+  const nowKey = `${today()} ${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
+  const stale = plan.filter(x=>x.state==='planned' && x.date && `${x.date} ${x.time||'23:59'}` <= nowKey);
+  if(stale.length && !confirm(`${stale.map(x=>x.p).join(', ')}의 발행 시각이 이미 지났어요. '예정'으로 두면 곧 자동으로 '발행완료'로 바뀌어요.\n미뤄진 일정이면 날짜를 바꾸고, 진행하지 않으면 '미진행'으로 바꿔 주세요.\n\n그래도 이대로 저장할까요?`)) return;
   if(plan.length && plan.every(x=>x.state!=='planned') && plan.some(x=>x.state==='published') && status!=='published'){
     if(confirm('모든 게재위치가 발행됐거나 미진행이에요. 상태를 발행완료로 바꿀까요?')) status = 'published';
   }
