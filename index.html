@@ -1871,30 +1871,43 @@ async function reloadCurrent(){
 // 노션 6번 "브랜드팀 접수 회신 양식" 그대로 슬랙에 붙여넣을 수 있게
 function copyReply(){
   const r = current;
-  const owner = val('e-owner'), brief = val('e-brief'), draft = val('e-draft'), declined = val('e-declined').trim();
-  const lines = [];
-  lines.push(`@${r.requester} 님, 요청 접수했어요.`);
-  lines.push('');
-  lines.push(`*담당자*  ${owner || '(미정)'}`);
-  lines.push(`*브리프 확정일*  ${brief ? short(brief) : '(미정)'}`);
-  lines.push('');
-  lines.push('*게재위치별 일정*');
+  const owner = val('e-owner'), declined = val('e-declined').trim();
+  const tag = name => name ? `@${String(name).split(/[,+]/)[0].trim()}` : '담당 미정';
+  const L = [];          // [텍스트, 굵게 여부]
+  L.push([`@${r.requester || '요청자'} 님, 요청 접수했습니다.`]);
+  L.push(['아래 일정으로 콘텐츠 게재하겠습니다.']);
+  L.push(['']);
+  L.push(['게재위치별 일정', true]);
   draftPlan.filter(x=>x.state!=='skip').forEach(x=>{
     const when = x.date ? `${short(x.date)}${x.time?' '+x.time:''}` : (SEPARATE_REPLY.includes(x.p) ? '발행일 별도 회신' : '일정 조율 중');
-    const extra = [x.slot ? x.slot : '', x.global ? 'EN/JP 포함' : ''].filter(Boolean).join(', ');
-    lines.push(`• ${x.p}${extra?` (${extra})`:''}  ${when} / ${x.count||1}건 / ${x.owner || owner || '담당 미정'}`);
+    const extra = [x.slot || '', x.global ? 'EN/JP 포함' : ''].filter(Boolean).join(', ');
+    L.push([`• ${x.p}${extra?` (${extra})`:''}  ${when} / ${x.count||1}건 / ${tag(x.owner || owner)}`]);
   });
+  // 진행이 어려운 게재위치가 있을 때만
   const skipped = draftPlan.filter(x=>x.state==='skip').map(x=>x.p);
   if(skipped.length || declined){
-    lines.push('');
-    lines.push('*진행이 어려운 게재위치 / 대체안*');
-    if(skipped.length) lines.push(`• ${skipped.join(', ')}`);
-    if(declined) lines.push(declined);
+    L.push(['']);
+    L.push(['진행이 어려운 게재위치 / 대체안', true]);
+    if(skipped.length) L.push([`• ${skipped.join(', ')}`]);
+    if(declined) declined.split('\n').forEach(t=>L.push([t]));
   }
-  lines.push('');
-  lines.push(`*시안 검수 공유*  ${draft ? short(draft)+' '+timeOf(draft) : '(미정)'}`);
-  lines.push('발행 후 허브에서 상태 업데이트할게요.');
-  copyText(lines.join('\n'), '회신 메시지를 복사했어요. 요청 스레드에 붙여넣어 주세요.');
+  L.push(['']);
+  L.push(['발행 후 허브에서 상태 업데이트될 예정입니다.']);
+  L.push(['궁금하신 점이나 논의 필요한 부분이 있다면 말씀 부탁드려요!']);
+
+  // 슬랙에 붙여넣으면 굵게가 그대로 보이도록 서식(HTML)과 일반 텍스트(*굵게*)를 함께 복사
+  const text = L.map(([t,b])=>b ? `*${t}*` : t).join('\n');
+  const html = L.map(([t,b])=>b ? `<b>${esc(t)}</b>` : esc(t)).join('<br>');
+  copyRich(html, text, '회신 메시지를 복사했어요. 요청 스레드에 붙여넣어 주세요.');
+}
+function copyRich(html, text, done){
+  if(navigator.clipboard && window.ClipboardItem){
+    const item = new ClipboardItem({
+      'text/html': new Blob([html], { type:'text/html' }),
+      'text/plain': new Blob([text], { type:'text/plain' }),
+    });
+    navigator.clipboard.write([item]).then(()=>toast(done)).catch(()=>copyText(text, done));
+  } else copyText(text, done);
 }
 
 function legacyBody(r){
