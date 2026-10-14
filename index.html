@@ -141,7 +141,14 @@ body:not(.can-edit) .editor-only{display:none!important}
 .lane h4{font-size:13px;font-weight:700;display:flex;align-items:baseline;gap:6px;margin-bottom:10px}
 .lane h4 em{font-style:normal;font-size:20px;font-weight:700;letter-spacing:-0.02em}
 .lane.bad h4 em{color:var(--bad)}.lane.warn h4 em{color:var(--warn)}.lane.info h4 em{color:var(--info)}.lane.plum h4 em{color:var(--plum)}
-.lane ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.lane ul{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:352px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;margin-right:-4px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.lane ul::-webkit-scrollbar{width:5px}
+.lane ul::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px}
+/* 아래로 더 있을 때만 흐리게 + 안내 */
+.lane-list{position:relative}
+.lane-list.more::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36px;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--surface))}
+.lane-more{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center}
+.lane-more.hidden{visibility:hidden}
 .lane li{font-size:12.5px;padding:7px 9px;border-radius:var(--r-sm);background:var(--paper);cursor:pointer;line-height:1.4}
 .lane li:hover{background:var(--sunk)}
 .lane li small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
@@ -1084,7 +1091,7 @@ function renderDashboard(){
   // ── 3. 오늘 할 일 ──
   document.getElementById('today-title').textContent = `오늘 할 일 · ${now.getMonth()+1}월 ${now.getDate()}일 ${DOW[now.getDay()]}요일`;
   const lane = (cls, title, list, item) => `<div class="lane ${cls}"><h4><em>${list.length}</em>${title}</h4>${
-    list.length ? `<ul>${list.slice(0,6).map(item).join('')}</ul>${list.length>6?`<div class="none" style="margin-top:6px">외 ${list.length-6}건</div>`:''}` : '<div class="none">없음</div>'}</div>`;
+    list.length ? `<div class="lane-list"><ul>${list.map(item).join('')}</ul></div><div class="lane-more hidden">아래로 스크롤해서 더 보기</div>` : '<div class="none">없음</div>'}</div>`;
   document.getElementById('today').innerHTML =
     lane('bad','회신 필요', needReply, r=>{
       const late = t > replyDue(r);
@@ -1093,6 +1100,7 @@ function renderDashboard(){
     lane('warn','오늘·내일 발행', soon, ({r,x})=>`<li onclick="openPanel('${esc(r.id)}')">${esc(x.p)} ${x.slot?'('+esc(x.slot)+')':''} ${esc(r.project)}<small>${x.date===t?'오늘':'내일'} ${x.time||''} ${esc(x.owner)||'담당 미정'}</small></li>`) +
     lane('plum','시안 검수 중', review, r=>`<li onclick="openPanel('${esc(r.id)}')">${esc(r.project)}<small>${esc(r.team)} / 공유 ${r.draftShareAt?short(r.draftShareAt)+' '+timeOf(r.draftShareAt):'시점 미정'}</small></li>`) +
     lane('info','킥오프 필요', kickoff, r=>`<li onclick="openPanel('${esc(r.id)}')">${esc(r.project)}<small>메인 기획전 / 오픈 ${short(r.promoStart)}</small></li>`);
+  bindLaneScroll();
 
   // ── 4. 향후 14일 발행 일정 ──
   const days = Array.from({length:14}, (_,i)=>ymd(addDays(now,i)));
@@ -1148,6 +1156,20 @@ function renderDashboard(){
   const recent = [...v2].sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).slice(0,8);
   document.getElementById('recent-body').innerHTML = recent.length ? recent.map(rowHtml).join('')
     : emptyRow(8, `아직 새 양식으로 접수된 요청이 없어요. ${REQUEST_CHANNEL} 워크플로로 접수되면 여기에 표시돼요.`);
+}
+
+// 오늘 할 일 칸: 넘치면 스크롤, 아래에 더 있을 때만 흐림·안내 표시
+function bindLaneScroll(){
+  document.querySelectorAll('#today .lane-list').forEach(box=>{
+    const ul = box.querySelector('ul'), hint = box.nextElementSibling;
+    const update = ()=>{
+      const more = ul.scrollHeight - ul.scrollTop - ul.clientHeight > 4;
+      box.classList.toggle('more', more);
+      if(hint) hint.classList.toggle('hidden', !(ul.scrollHeight > ul.clientHeight + 4 && more));
+    };
+    ul.addEventListener('scroll', update, { passive:true });
+    requestAnimationFrame(update);
+  });
 }
 
 // 자동으로 뽑는 이번 주 특이사항
