@@ -336,11 +336,11 @@ tbody tr:last-child td{border-bottom:none}
 .tl-mark.end.done i{background:var(--warn)}
 
 /* 게재 일정 표 */
-.plan td{padding:6px 6px;cursor:default}
+.plan td{padding:6px 4px;cursor:default}
 .plan tbody tr:hover td{background:none}
 .plan input:disabled,.plan select:disabled,.f input:disabled,.f select:disabled,.f textarea:disabled{background:var(--paper);color:var(--ink);opacity:1;cursor:default}
 .plan input,.plan select{width:100%;padding:6px 7px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:12.5px;background:var(--surface)}
-.plan .pname{font-weight:600;font-size:12.5px;min-width:108px}
+.plan .pname{font-weight:600;font-size:12.5px;min-width:84px}
 .plan .pname small{display:block;font-weight:400;color:var(--muted);font-size:11px}
 .plan .pname select{display:block;width:100%;margin-top:4px}
 .plan input.out{border-color:var(--warn);background:var(--warn-soft)}
@@ -351,6 +351,11 @@ tbody tr:last-child td{border-bottom:none}
 .plan .lk-label{font-size:11px;color:var(--muted);white-space:nowrap;vertical-align:middle}
 .plan .lk{display:flex;gap:6px;align-items:center}
 .plan .lk input{flex:1;min-width:0}
+.plan select[data-k="owner"]{min-width:84px}
+.plan select.state{min-width:96px}
+.plan input[data-k="count"]{width:46px!important}
+.plan input[data-k="time"]{min-width:0!important;width:112px}
+.plan input[data-k="date"]{width:132px}
 .plan .x{border:none;background:none;color:var(--faint);font-size:16px;padding:2px 6px}
 .plan .x:hover{color:var(--bad)}
 .add-row{display:flex;gap:6px;margin-top:10px}
