@@ -81,7 +81,7 @@ body:not(.can-edit) .editor-only{display:none!important}
 .block-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .block-head h3{font-size:14px;font-weight:700}
 .block-head .sub{font-size:12px;color:var(--muted)}
-.block-head .right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.block-head .right{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;align-items:center}
 .empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:13px}
 
 /* 대시보드: 상단 실시간 줄 */
@@ -231,7 +231,9 @@ tbody tr:last-child td{border-bottom:none}
 .ev .av.none{background:var(--faint)}
 .ev .tm{flex-shrink:0;font-variant-numeric:tabular-nums}
 .ev .done-tag{margin-left:auto;font-size:10px;font-weight:700;color:var(--ok);white-space:nowrap;flex-shrink:0}
-.ev .ev-who{display:flex;min-width:0}
+.ev .ev-who{display:flex;min-width:0;align-items:center}
+.ev .ev-link{margin-left:auto;font-size:12px;font-weight:700;color:var(--pine);text-decoration:none;padding:0 4px;border-radius:3px}
+.ev .ev-link:hover{background:var(--pine-soft)}
 .cal-legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:12px 18px;border-bottom:1px solid var(--line);background:#FAFAF7}
 .lg-group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .lg-title{font-size:11.5px;font-weight:700;color:var(--muted);margin-right:2px}
@@ -266,7 +268,7 @@ tbody tr:last-child td{border-bottom:none}
 .cl-item .who .av{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
 .cl-item .who .av.none{background:var(--faint)}
 .cl-state{font-size:11.5px;font-weight:600;text-align:right}
-.cl-state.done{color:var(--ok)}.cl-state.plan{color:var(--muted)}
+.cl-state.done{color:var(--ok)}.cl-state.todo{color:var(--muted)}
 .cl-item.done b{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
 .cl-empty{padding:40px 18px;text-align:center;color:var(--muted);font-size:13px}
 .ev:hover{background:var(--sunk)}
@@ -344,6 +346,11 @@ tbody tr:last-child td{border-bottom:none}
 .plan input.out{border-color:var(--warn);background:var(--warn-soft)}
 .plan tr.skip td:not(:first-child):not(:last-child) input,.plan tr.skip td:not(:first-child):not(:last-child) select:not(.state){opacity:.35}
 .plan .auto-tag{display:block;font-size:10.5px;color:var(--ok);margin-top:3px;text-align:center}
+.plan tr.link-row td{padding-top:0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.plan tbody tr:not(.link-row) td{border-bottom:none}
+.plan .lk-label{font-size:11px;color:var(--muted);white-space:nowrap;vertical-align:middle}
+.plan .lk{display:flex;gap:6px;align-items:center}
+.plan .lk input{flex:1;min-width:0}
 .plan .x{border:none;background:none;color:var(--faint);font-size:16px;padding:2px 6px}
 .plan .x:hover{color:var(--bad)}
 .add-row{display:flex;gap:6px;margin-top:10px}
@@ -567,6 +574,8 @@ tbody tr:last-child td{border-bottom:none}
               </div>
               <select id="c-owner" class="btn sm"><option value="">담당 전체</option></select>
               <select id="c-place" class="btn sm"><option value="">게재위치 전체</option></select>
+              <select id="c-cat" class="btn sm"><option value="">카테고리 전체</option></select>
+              <select id="c-req" class="btn sm"><option value="">요청자 전체</option></select>
             </div>
           </div>
           <div class="cal-legend" id="cal-legend"></div>
@@ -650,7 +659,7 @@ const DISCUSS_CHANNEL = '#브랜드_comm';
 
 const PLACEMENTS = ['IG 피드','IG 스토리','IG 릴스','스레드','뉴스레터','블로그','유튜브'];
 const SEPARATE_REPLY = ['IG 릴스','유튜브'];          // 발행일 별도 회신
-const CATEGORIES = ['상시 기획전 국내','상시 기획전 해외','광고·이벤트','메인 기획전'];
+const CATEGORIES = ['[국내] 상시 기획전','[국내] 메인 기획전','[해외] 상시 기획전','[해외] 메인 기획전','광고·이벤트'];
 const RULE = { submitLead:5, publishWindow:5 };     // 접수 D-5, 발행 D ~ D+5
 
 const STATUS = [
@@ -1250,6 +1259,16 @@ function fillFilters(){
   fill('f-place', PLACEMENTS, true);
   fill('c-owner', MEMBERS, true);
   fill('c-place', PLACEMENTS, true);
+  // 카테고리: 워크플로 선택지 + 실제 들어온 값, 자체 콘텐츠·이전 양식
+  const catNorm = c => String(c||'').replace(/\s*[·・]\s*/g,'·').trim();
+  const cats = [...new Set([...CATEGORIES, ...ALL.map(r=>catNorm(r.category))].filter(Boolean))].filter(c=>c!=='이전 양식');
+  fill('c-cat', [...cats, '자체 콘텐츠', '이전 양식'], true);
+  // 요청자: 요청팀과 함께 표시 (예: 구홍은 · 스테이MD)
+  const reqs = {};
+  ALL.forEach(r=>{ if(r.requester) reqs[r.requester] = reqs[r.requester] || r.team; });
+  const sel = document.getElementById('c-req'), cur = sel.value;
+  sel.innerHTML = '<option value="">요청자 전체</option>' + Object.keys(reqs).sort((a,b)=>a.localeCompare(b,'ko'))
+    .map(n=>`<option value="${esc(n)}" ${n===cur?'selected':''}>${esc(n)}${reqs[n]?` · ${esc(reqs[n])}`:''}</option>`).join('');
   fill('a-team', [...new Set(ALL.map(r=>r.team).filter(Boolean))].sort(), true);
   fill('a-place', PLACEMENTS, true);
 
@@ -1309,11 +1328,14 @@ let calMode = (()=>{ try{ return localStorage.getItem('hub_cal_mode') || 'grid';
 let calGroup = '';   // 범례에서 고른 채널 그룹
 
 function calItems(){
-  const owner = val('c-owner'), place = val('c-place');
+  const owner = val('c-owner'), place = val('c-place'), cat = val('c-cat'), req = val('c-req');
   const grp = CH_GROUPS.find(g=>g.cls===calGroup);
+  const catOf = r => String(r.category||'').replace(/\s*[·・]\s*/g,'·').trim();
   return planItems((r,x)=>x.state!=='skip'
     && (!owner || String(x.owner).includes(owner) || (!x.owner && r.owner.includes(owner)))
     && (!place || x.p===place)
+    && (!cat || catOf(r)===cat)
+    && (!req || r.requester===req)
     && (!grp || grp.places.includes(x.p)));
 }
 function renderLegend(){
@@ -1327,6 +1349,8 @@ function renderLegend(){
     (MEMBERS.length ? `<span class="lg-sep"></span><div class="lg-group"><span class="lg-title">담당</span>${MEMBERS.map(m=>`
       <button class="lg-chip ${val('c-owner')===m?'on':''}" onclick="toggleCalOwner('${esc(m)}')" title="${esc(m)} 일정만 보기"><span class="dot" style="background:${ownerColor(m)}"></span>${esc(m)}</button>`).join('')}</div>` : '');
 }
+function calFiltered(){ return !!(calGroup || ['c-owner','c-place','c-cat','c-req'].some(id=>val(id))); }
+function resetCalFilters(){ calGroup = ''; ['c-owner','c-place','c-cat','c-req'].forEach(id=>document.getElementById(id).value=''); renderCalendar(); }
 function toggleCalGroup(cls){ calGroup = calGroup===cls ? '' : cls; renderCalendar(); }
 function toggleCalOwner(m){ const sel = document.getElementById('c-owner'); sel.value = sel.value===m ? '' : m; renderCalendar(); }
 function setCalMode(m){
@@ -1369,7 +1393,7 @@ function renderCalGrid(byDay){
           title="${esc(r.project+'\n'+pl+(x.time?' '+x.time:'')+'\n담당 '+(who||'미정')+(r.own?'\n브크팀 자체 콘텐츠':'')+(x.state==='published'?'\n발행완료':''))}">
           <div class="ev-meta">${r.own?'<span class="own-tag">자체</span>':''}<span class="pl">${esc(pl)}</span>${x.time?`<span class="tm">· ${x.time}</span>`:''}${x.state==='published'?'<span class="done-tag">완료</span>':''}</div>
           <div class="ev-proj">${esc(r.project)}</div>
-          <div class="ev-who">${ownerChip(who)}</div>
+          <div class="ev-who">${ownerChip(who)}${x.url&&isUrl(x.url)?`<a class="ev-link" href="${esc(x.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="배포한 콘텐츠 열기">↗</a>`:''}</div>
         </div>`;
       }).join('')}
     </div>`;
@@ -1415,7 +1439,7 @@ async function moveSchedule(id, i, newDate){
   try{
     let j;
     if(isOwn) j = await ownApi('updateOwn', { id, fields:{ date:newDate, ...(x.state!==oldState?{state:'예정'}:{}) }, expect:r.updatedAt });
-    else j = await save(id, { plan: JSON.stringify(r.plan.map(({p,date,time,count,owner,global,state,slot,note,auto})=>({p,date,time,count,owner,global,state,slot,note,...(auto?{auto:true}:{})}))) }, { expect:r.updatedAt });
+    else j = await save(id, { plan: JSON.stringify(r.plan.map(PLAN_KEYS)) }, { expect:r.updatedAt });
     if(j && j.updatedAt) r.updatedAt = j.updatedAt;
     const label = `${x.p} ${short(oldDate)} → ${short(newDate)}`;
     pushUndo(`${r.project} ${label}`, ()=> isOwn ? restoreOwn(id, before) : restoreRequest(id, before));
@@ -1439,7 +1463,7 @@ let lastMoveMsg = '';
 //  저장된 변경을 최근 것부터 하나씩 이전 값으로 다시 저장해요 (최대 20단계, 새로고침하면 초기화)
 // ══════════════════════════════════════
 const UNDO = [];
-const PLAN_KEYS = ({p,date,time,count,owner,global,state,slot,note,auto})=>({p,date,time,count,owner,global,state,slot,note,...(auto?{auto:true}:{})});
+const PLAN_KEYS = ({p,date,time,count,owner,global,state,slot,note,url,auto})=>({p,date,time,count,owner,global,state,slot,note,...(url?{url}:{}),...(auto?{auto:true}:{})});
 function reqSnapshot(r){
   return { status:r.status, owner:r.owner, repliedAt:r.repliedAt, briefDate:r.briefDate, draftShareAt:r.draftShareAt,
            kickoff:r.kickoff, plan:JSON.parse(JSON.stringify(r.plan.map(PLAN_KEYS))), declined:r.declined, memo:r.memo };
@@ -1585,7 +1609,7 @@ function renderCalList(byDay){
   const mm = `${calY}-${pad(calM+1)}`;
   const days = Object.keys(byDay).filter(d=>d.startsWith(mm)).sort();
   const box = document.getElementById('cal-list');
-  if(!days.length){ box.innerHTML = `<div class="cl-empty">${calM+1}월에 조건에 맞는 발행 일정이 없어요.${canEdit()?' <button class="btn sm" onclick="openOwnEditor(null)">자체 콘텐츠 추가</button>':''}</div>`; return; }
+  if(!days.length){ box.innerHTML = `<div class="cl-empty">${calM+1}월에 조건에 맞는 발행 일정이 없어요.${calFiltered()?' <button class="btn sm" onclick="resetCalFilters()">필터 초기화</button>':''}${canEdit()?' <button class="btn sm" onclick="openOwnEditor(null)">자체 콘텐츠 추가</button>':''}</div>`; return; }
   const grpColor = p => (CH_GROUPS.find(g=>g.places.includes(p))||{color:'#A3A199'}).color;
   box.innerHTML = days.map(d=>{
     const dt = parseDate(d), hol = holidayOf(dt), red = dt.getDay()===0 || dt.getDay()===6 || hol;
@@ -1601,7 +1625,7 @@ function renderCalList(byDay){
           <span class="cl-ch"><i style="background:${grpColor(x.p)}"></i>${esc(pl)}</span>
           <span class="cl-proj"><b>${esc(r.project)}</b><small>${r.own?'<span class="own-tag">자체</span> 브랜드 크리에이티브':`${esc(r.team)} ${esc(r.requester)}${r.legacy?' · 이전 양식':''}`}</small></span>
           <span class="who">${who?`<span class="av" style="background:${ownerColor(first)}">${esc((first.length>=3?first.slice(1,2):first.slice(0,1)))}</span>${esc(first)}`:'<span class="av none">?</span><span style="color:var(--muted)">담당 미정</span>'}</span>
-          <span class="cl-state ${done?'done':'plan'}">${done?'발행완료':'예정'}</span>
+          <span class="cl-state ${done?'done':'todo'}">${x.url&&isUrl(x.url)?`<a href="${esc(x.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="배포한 콘텐츠 열기" style="margin-right:6px;text-decoration:none">↗</a>`:''}${done?'발행완료':'예정'}</span>
         </div>`;
       }).join('')}</div>
     </div>`;
@@ -1628,7 +1652,9 @@ function renderArchive(){
     <td class="nowrap">${short(last(r))}</td>
     <td><div class="proj">${esc(r.project)}${r.legacy?'<span class="legacy-tag">이전 양식</span>':''}</div><div class="who">${esc(r.team)} ${esc(r.requester)}</div></td>
     <td class="cat">${esc(r.category)}</td>
-    <td>${chips([...new Set(r.plan.filter(x=>x.state==='published').map(x=>x.p))])}</td>
+    <td><div class="chips">${r.plan.filter(x=>x.state==='published').map(x=>x.url&&isUrl(x.url)
+      ? `<a class="chip ${pClass(x.p)}" href="${esc(x.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="배포한 콘텐츠 열기" style="text-decoration:none">${esc(x.p)} ↗</a>`
+      : `<span class="chip ${pClass(x.p)}">${esc(x.p)}</span>`).filter((v,i,a)=>a.indexOf(v)===i).join('')}</div></td>
     <td class="nowrap">${esc(r.owner)}</td></tr>`).join('') : emptyRow(5,'발행 완료된 건이 없어요.');
 }
 
@@ -1907,6 +1933,14 @@ function renderPlanRows(){
       <td style="text-align:center"><input type="checkbox" data-i="${i}" data-k="global" ${x.global?'checked':''} style="width:auto" aria-label="글로벌 버전"></td>
       <td><select class="state" data-i="${i}" data-k="state">${ITEM_STATE.map(s=>`<option value="${s.key}" ${s.key===x.state?'selected':''}>${s.label}</option>`).join('')}</select>${x.auto?'<small class="auto-tag" title="발행 시각이 지나 자동으로 발행완료 처리됐어요">자동 처리</small>':''}</td>
       <td><button class="x" onclick="removePlan(${i})" aria-label="${esc(x.p)} 삭제">×</button></td>
+    </tr>
+    <tr class="link-row ${x.state==='skip'?'skip':''}">
+      <td class="lk-label">배포 링크</td>
+      <td colspan="6"><div class="lk">
+        <input type="url" data-i="${i}" data-k="url" value="${esc(x.url||'')}" placeholder="발행한 ${esc(x.p)} 게시물 링크를 붙여넣어 주세요" aria-label="${esc(x.p)} 배포 링크">
+        ${x.url && isUrl(x.url) ? `<a class="btn sm" href="${esc(x.url)}" target="_blank" rel="noopener">열기 ↗</a>` : ''}
+      </div></td>
+      <td></td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" class="empty">게재위치를 추가해 주세요.</td></tr>`;
   if(!canEdit()) document.querySelectorAll('#plan-body input,#plan-body select').forEach(el=>{ el.disabled = true; });
@@ -1944,7 +1978,7 @@ async function savePanel(force){
   let status = val('e-status');
   let replied = val('e-replied');
   if(status!=='new' && !replied) replied = today();             // 접수대기에서 넘어가면 회신일 자동 기록
-  const plan = draftPlan.map(({p,date,time,count,owner,global,state,slot,note,auto})=>({p,date,time,count,owner,global,state,slot,note,...(auto?{auto:true}:{})}));
+  const plan = draftPlan.map(x=>PLAN_KEYS({ ...x, url:String(x.url||'').trim() }));
   // 발행 시각이 지났는데 '예정'으로 둔 일정은 다음 자동 처리 때 다시 발행완료가 됨
   const nowKey = `${today()} ${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
   const stale = plan.filter(x=>x.state==='planned' && x.date && `${x.date} ${x.time||'23:59'}` <= nowKey);
@@ -2103,7 +2137,7 @@ document.getElementById('status-seg').addEventListener('click', e=>{
 });
 ['f-cat','f-team','f-owner','f-place','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change', renderRequests));
 document.getElementById('f-q').addEventListener('input', renderRequests);
-['c-owner','c-place'].forEach(id=>document.getElementById(id).addEventListener('change', renderCalendar));
+['c-owner','c-place','c-cat','c-req'].forEach(id=>document.getElementById(id).addEventListener('change', renderCalendar));
 document.getElementById('cal-mode').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b) setCalMode(b.dataset.m); });
 ['a-team','a-place','a-month'].forEach(id=>document.getElementById(id).addEventListener('change', renderArchive));
 document.getElementById('a-q').addEventListener('input', renderArchive);
