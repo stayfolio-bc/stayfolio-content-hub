@@ -410,6 +410,7 @@ tbody tr:last-child td{border-bottom:none}
 /* 캘린더: 자체 콘텐츠·드래그 */
 .ev.own{background:var(--surface);border:1px dashed var(--line-strong);border-left-width:3px;border-left-style:solid}
 .ev.own.p-ig{border-left-color:var(--ch-ig)}.ev.own.p-th{border-left-color:var(--ch-th)}.ev.own.p-nl{border-left-color:var(--ch-nl)}.ev.own.p-bl{border-left-color:var(--ch-bl)}.ev.own.p-yt{border-left-color:var(--ch-yt)}
+.own-tag.nt{color:#37352F;background:#EDECE9}
 .own-tag{font-size:10px;font-weight:700;color:var(--pine);background:var(--pine-soft);border-radius:3px;padding:0 4px;flex-shrink:0}
 .ev[draggable="true"]{cursor:grab}
 .ev.dragging{opacity:.4}
@@ -571,6 +572,7 @@ tbody tr:last-child td{border-bottom:none}
               <button class="btn sm" onclick="moveMonth(1)" aria-label="다음 달">›</button>
               <button class="btn ghost sm" onclick="moveMonth(0)">이번 달</button>
               <button class="btn primary sm editor-only" onclick="openOwnEditor(null)">+ 자체 콘텐츠 추가</button>
+              <button class="btn sm editor-only" id="notion-sync-btn" onclick="syncNotionNow()" title="노션 Contents Calendar를 지금 다시 불러와요">노션 동기화</button>
             </div>
             <div class="right">
               <div class="seg" id="cal-mode" role="tablist" aria-label="보기 방식">
@@ -584,7 +586,7 @@ tbody tr:last-child td{border-bottom:none}
             </div>
           </div>
           <div class="cal-legend" id="cal-legend"></div>
-          <div class="cal-hint editor-only" id="cal-hint">일정 카드를 다른 날짜로 끌어다 놓으면 발행일이 바뀌어요. 날짜 옆 + 를 누르면 그날 자체 콘텐츠를 추가할 수 있어요.</div>
+          <div class="cal-hint editor-only" id="cal-hint">일정 카드를 다른 날짜로 끌어다 놓으면 발행일이 바뀌어요. 날짜 옆 + 를 누르면 그날 자체 콘텐츠를 추가할 수 있어요. <span id="notion-sync-at"></span></div>
           <div class="cal" id="cal"></div>
           <div class="cal-list hidden" id="cal-list"></div>
         </div>
@@ -658,7 +660,9 @@ const BRIEF_TEMPLATE_URL = 'https://www.notion.so/stayfolio/3e4309999c4c819c8046
 // 퇴사·이동 등으로 목록에서 숨길 담당자 (설정 탭에 남아 있어도 드롭다운·범례·담당자별 진행에서 제외, 지난 기록의 이름은 그대로 표시)
 const INACTIVE_MEMBERS = ['김지원'];
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/16W9HBbxA2smEHdfKs21tvVKEOZGceBhKA0WY1gcljv8/edit';
-let SHEET_GIDS = {};   // Apps Script가 알려주는 탭 번호 (있으면 해당 행으로 바로 이동)
+let SHEET_GIDS = {};
+let NOTION_SYNCED = '';
+let NOTION_SYNC_CFG = null;   // Apps Script가 알려주는 탭 번호 (있으면 해당 행으로 바로 이동)
 const REQUEST_CHANNEL = '#브랜드_콘텐츠_요청';
 const DISCUSS_CHANNEL = '#브랜드_comm';
 
@@ -837,7 +841,7 @@ function cleanName(s){
 // 자체 콘텐츠 1건 = 게재 일정 1개짜리 '요청'처럼 다뤄서 캘린더·홈 집계에 함께 들어가게 함
 function fromOwn(o){
   return {
-    own:true, legacy:false, id:o.id, project:o.title||'(제목 없음)', team:'브랜드 크리에이티브', requester:'',
+    own:true, notion:String(o.id).startsWith('OWN-NT-'), legacy:false, id:o.id, project:o.title||'(제목 없음)', team:'브랜드 크리에이티브', requester:'',
     category:'자체 콘텐츠', owner:o.owner||'', status: o.state==='발행완료' ? 'published' : 'making',
     link:o.link||'', memo:o.memo||'', updatedAt:o.updatedAt||'', requested:[normPlacement(o.p) || o.p],
     plan:[{ p:normPlacement(o.p) || o.p, date:toYmd(o.date), time:timeOf(o.time), count:1, owner:o.owner||'', global:false,
@@ -916,6 +920,8 @@ async function load(silent){
     ALL = [ ...(j.data||[]).map(fromV2), ...(j.legacy||[]).map(fromLegacy) ];
     OWN = (j.own||[]).map(fromOwn);
     SHEET_GIDS = j.sheet || {};
+    NOTION_SYNCED = j.notionSyncedAt || '';
+    NOTION_SYNC_CFG = j.notionSync || null;
     // 상세창을 열어둔 채 새로 불러와도 작성 중인 내용은 그대로 두고, 저장 대상만 새 데이터로 연결
     if(current){
       current = ALL.find(x=>x.id===current.id) || current;
@@ -1343,7 +1349,22 @@ function calItems(){
     && (!req || r.requester===req)
     && (!grp || grp.places.includes(x.p)));
 }
+async function syncNotionNow(){
+  const b = document.getElementById('notion-sync-btn');
+  b.disabled = true; b.textContent = '노션 불러오는 중';
+  try{
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({ action:'syncNotion', user:me }) });
+    const j = await res.json();
+    if(j.ok === false) throw new Error(j.error);
+    toast(`노션 동기화 완료 · 추가 ${j.added} · 변경 ${j.updated} · 삭제 ${j.removed}`, 4000);
+    await load(true);
+  }catch(e){ toast('노션 동기화에 실패했어요: ' + e.message, 6000); }
+  b.disabled = false; b.textContent = '노션 동기화';
+}
 function renderLegend(){
+  const at = document.getElementById('notion-sync-at');
+  const cfg = NOTION_SYNC_CFG, every = cfg ? `평일 ${cfg.start}~${cfg.end}시, ${cfg.every}시간마다` : '평일 업무 시간에';
+  if(at) at.textContent = NOTION_SYNCED ? `노션 일정은 ${every} 자동으로 불러와요 (마지막 ${NOTION_SYNCED.slice(5,16).replace('-','/')}).` : '';
   const counts = {};
   const mm = `${calY}-${pad(calM+1)}`;
   planItems((r,x)=>x.state!=='skip' && String(x.date).startsWith(mm)).forEach(({x})=>{ const c = pClass(x.p); counts[c] = (counts[c]||0) + 1; });
@@ -1389,14 +1410,14 @@ function renderCalGrid(byDay){
     html += `<div class="cell ${d.getMonth()!==calM?'out':''} ${k===t?'today':''} ${(hol||d.getDay()===0)?'hday':''}" data-date="${k}">
       <div class="n"><b>${d.getDate()}</b>${hol?`<span class="hol">${hol}</span>`:''}${canEdit()?`<button class="add" onclick="openOwnEditor(null,'${k}')" title="${short(k)} 자체 콘텐츠 추가" aria-label="${short(k)} 자체 콘텐츠 추가">+</button>`:''}</div>
       ${evs.map(({r,x,i})=>{
-        const drag = canEdit() && !r.legacy;
+        const drag = canEdit() && !r.legacy && !r.notion;
         const who = x.owner || r.owner || '';
         // 캘린더 칸이 좁아 소식지는 위치까지 짧게: "뉴스레터 소식지 상단" → "소식지 상단"
         const pl = x.p + (x.global ? ' · EN/JP' : '');
         return `<div class="ev ${pClass(x.p)} ${x.state==='published'?'done':''} ${r.legacy?'old':''} ${r.own?'own':''}" onclick="openPanel('${esc(r.id)}')"
           ${drag?`draggable="true" data-id="${esc(r.id)}" data-i="${i}"`:''}
           title="${esc(r.project+'\n'+pl+(x.time?' '+x.time:'')+'\n담당 '+(who||'미정')+(r.own?'\n브크팀 자체 콘텐츠':'')+(x.state==='published'?'\n발행완료':''))}">
-          <div class="ev-meta">${r.own?'<span class="own-tag">자체</span>':''}<span class="pl">${esc(pl)}</span>${x.time?`<span class="tm">· ${x.time}</span>`:''}${x.state==='published'?'<span class="done-tag">완료</span>':''}</div>
+          <div class="ev-meta">${r.own?`<span class="own-tag ${r.notion?'nt':''}">${r.notion?'노션':'자체'}</span>`:''}<span class="pl">${esc(pl)}</span>${x.time?`<span class="tm">· ${x.time}</span>`:''}${x.state==='published'?'<span class="done-tag">완료</span>':''}</div>
           <div class="ev-proj">${esc(r.project)}</div>
           <div class="ev-who">${ownerChip(who)}${x.url&&isUrl(x.url)?`<a class="ev-link" href="${esc(x.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="배포한 콘텐츠 열기">↗</a>`:''}</div>
         </div>`;
@@ -1536,8 +1557,8 @@ function openOwnEditor(id, date){
   if(id && !o) return;
   ownEditing = o;
   const x = o ? o.plan[0] : null;
-  const editable = canEdit();
-  document.getElementById('own-title').textContent = o ? (editable ? '자체 콘텐츠 수정' : '자체 콘텐츠') : '자체 콘텐츠 추가';
+  const editable = canEdit() && !(o && o.notion);
+  document.getElementById('own-title').textContent = o && o.notion ? '노션 연동 일정' : o ? (editable ? '자체 콘텐츠 수정' : '자체 콘텐츠') : '자체 콘텐츠 추가';
   document.getElementById('o-p').innerHTML = PLACEMENTS.map(p=>`<option ${x&&x.p===p?'selected':''}>${p}</option>`).join('');
   const who = o ? o.owner : me;
   document.getElementById('o-owner').innerHTML = `<option value="">—</option>` + MEMBERS.map(m=>`<option ${normName(m)===normName(who)?'selected':''}>${esc(m)}</option>`).join('') + (who && !MEMBERS.some(m=>normName(m)===normName(who)) ? `<option selected>${esc(who)}</option>` : '');
@@ -1547,7 +1568,9 @@ function openOwnEditor(id, date){
   document.getElementById('o-state').value = x && x.state==='published' ? '발행완료' : '예정';
   document.getElementById('o-link').value = o ? o.link : '';
   document.getElementById('o-memo').value = o ? o.memo : '';
-  document.getElementById('o-msg').textContent = '';
+  const msgEl = document.getElementById('o-msg');
+  msgEl.className = 'msg';
+  msgEl.innerHTML = o && o.notion ? `노션에서 온 일정이라 수정은 노션에서 해 주세요. <a class="btn sm" href="${esc(o.link)}" target="_blank" rel="noopener">노션에서 열기 ↗</a>` : '';
   document.getElementById('o-del').classList.toggle('hidden', !o || !editable);
   document.getElementById('o-save').classList.toggle('hidden', !editable);
   document.querySelectorAll('#own-dlg input,#own-dlg select,#own-dlg textarea').forEach(el=>el.disabled = !editable);
@@ -1628,7 +1651,7 @@ function renderCalList(byDay){
         return `<div class="cl-item ${done?'done':''}" onclick="openPanel('${esc(r.id)}')">
           <span class="tm">${x.time||'—'}</span>
           <span class="cl-ch"><i style="background:${grpColor(x.p)}"></i>${esc(pl)}</span>
-          <span class="cl-proj"><b>${esc(r.project)}</b><small>${r.own?'<span class="own-tag">자체</span> 브랜드 크리에이티브':`${esc(r.team)} ${esc(r.requester)}${r.legacy?' · 이전 양식':''}`}</small></span>
+          <span class="cl-proj"><b>${esc(r.project)}</b><small>${r.own?`<span class="own-tag ${r.notion?'nt':''}">${r.notion?'노션':'자체'}</span> 브랜드 크리에이티브`:`${esc(r.team)} ${esc(r.requester)}${r.legacy?' · 이전 양식':''}`}</small></span>
           <span class="who">${who?`<span class="av" style="background:${ownerColor(first)}">${esc((first.length>=3?first.slice(1,2):first.slice(0,1)))}</span>${esc(first)}`:'<span class="av none">?</span><span style="color:var(--muted)">담당 미정</span>'}</span>
           <span class="cl-state ${done?'done':'todo'}">${x.url&&isUrl(x.url)?`<a href="${esc(x.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="배포한 콘텐츠 열기" style="margin-right:6px;text-decoration:none">↗</a>`:''}${done?'발행완료':'예정'}</span>
         </div>`;
